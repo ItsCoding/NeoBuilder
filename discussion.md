@@ -593,3 +593,337 @@ Code Review Agent:
 - Implementation phases remain intact with proper granularity
 
 **No missing information detected.** The story.md is ready for implementation.
+
+---
+
+Core Review (Senior Architect + Ex-Agency Engineer):
+
+## Critical Missing Features
+
+### 1. **Content Scheduling & Publishing Workflow**
+**Impact: High | Urgency: Phase 2**
+- No scheduled publish/unpublish mentioned. Small businesses run campaigns, seasonal menus, holiday hours.
+- **Add**: `scheduledPublishAt` and `scheduledUnpublishAt` to Page model
+- **Add**: Cron job or scheduled task system to auto-publish/unpublish
+- **UX**: Calendar view showing scheduled content; conflict warnings if overlapping
+
+### 2. **SEO Management (Beyond Basics)**
+**Impact: Critical | Urgency: Phase 2**
+- Story mentions "SEO defaults" but this is insufficient for agency work.
+- **Missing**:
+  - Per-page meta (title, description, OG image, Twitter cards)
+  - Auto-generated XML sitemap (dynamic, respects publish status)
+  - robots.txt management
+  - Canonical URL handling
+  - Structured data / JSON-LD (LocalBusiness, Product, Event schemas critical for shops/restaurants)
+  - Redirect chain validation (no 301 → 301)
+- **Add**: SEO score/checker in editor (missing meta, image alt text, heading structure)
+- **Library**: Consider `next-seo` or custom head management
+
+### 3. **Multi-Language/Localization (i18n)**
+**Impact: High | Urgency: Phase 3 or plugin**
+- Hotels/restaurants in tourist areas NEED multi-language sites
+- **Critical decision needed**: Per-page translation vs. full content duplication?
+- **Schema impact**: `PageTranslation` table or `locale` column on Page; media alt text per locale
+- **UX**: Language switcher; translation status indicators; fallback to default language
+- **Routing**: `/en/about`, `/de/about` or domain-based
+- **Note**: Easyblocks supports this but you need to model it in your CMS layer
+
+### 4. **Search Functionality (Site Search for End Users)**
+**Impact: High | Urgency: Phase 4**
+- Visitors need to find products, menu items, hotel rooms
+- **Options**:
+  - PostgreSQL full-text search (good enough for v1; index published content)
+  - Algolia/Meilisearch/Typesense (better UX but external dependency)
+- **Scope**: Search pages, custom database rows (products, menu items), media
+- **Admin**: Search analytics (what users search for but don't find = content gap)
+
+### 5. **Form Builder (Visual)**
+**Impact: High | Urgency: Phase 4**
+- Story mentions "contact form feature" but small businesses need: booking requests, catering inquiries, job applications, custom surveys
+- **Need**: Visual form builder as a page block (not just code-defined forms)
+  - Drag/drop fields (text, email, phone, select, radio, checkbox, file upload, date picker)
+  - Conditional logic (show field X if Y is checked)
+  - Email notifications (to workspace admin + auto-reply to user)
+  - Submission storage + export (CSV)
+  - Integration hooks (Zapier webhook, email service)
+- **Spam**: Already planned (Turnstile), but add honeypot fields too
+
+### 6. **E-commerce Basics (For "Shop" Use Case)**
+**Impact: High if targeting shops | Urgency: Phase 5 or separate product**
+- PM says "small shop" needs a website—do they sell online or just show products?
+- **Minimum viable e-commerce**:
+  - Product catalog (use custom databases, but need cart + checkout)
+  - Inventory tracking (low stock warnings)
+  - Stripe/PayPal integration
+  - Order management (status: pending, paid, shipped, completed)
+  - Email receipts
+  - Shipping calculator
+- **Alternative**: Don't build this; integrate with Shopify/WooCommerce/Snipcart via plugin
+- **Decision needed**: Full e-commerce or "catalog + external checkout"?
+
+### 7. **Booking/Reservation System (For Hotel/Restaurant Use Case)**
+**Impact: High for hospitality | Urgency: Phase 5 or plugin**
+- Hotels need room booking; restaurants need table reservations
+- **Core features**:
+  - Availability calendar
+  - Time slot selection
+  - Capacity limits
+  - Deposit/payment collection
+  - Confirmation emails
+  - Admin calendar view + status (pending, confirmed, canceled)
+- **Alternative**: Integrate external booking systems (OpenTable, Booking.com) via plugin/widget
+- **Decision needed**: Build native or plugin-based integration?
+
+### 8. **Email System (Transactional + Marketing)**
+**Impact: High | Urgency: Phase 3**
+- Missing email infrastructure discussion
+- **Needed**:
+  - Transactional email service (SendGrid, Postmark, Resend, AWS SES)
+  - Templates (form submission, comment notification, password reset, booking confirmation)
+  - Email queue (via Redis/BullMQ already planned)
+  - Unsubscribe management (GDPR/CAN-SPAM)
+- **Later**: Simple newsletter (collect emails, send broadcasts)—or integrate Mailchimp/ConvertKit
+
+## Major UX/DX Oversights
+
+### 9. **Global Elements & Component Reuse**
+**Impact: Medium | Urgency: Phase 3**
+- No mention of global headers/footers that update across all pages
+- **Need**: "Global Sections" that can be referenced in multiple pages
+  - Edit once, updates everywhere
+  - Examples: header nav, footer, promo banner, cookie consent
+- **Easyblocks**: Supports this via "external data" references; you need to model `GlobalSection` table
+
+### 10. **Mobile Preview in Editor**
+**Impact: High | Urgency: Phase 3**
+- Easyblocks has responsive editing, but UX needs explicit mobile/tablet/desktop viewport switcher
+- **Add**: Preview frame size toggle in editor toolbar
+- **Bonus**: Device-specific screenshot for version history
+
+### 11. **Collaboration & Approval Workflow**
+**Impact: Medium | Urgency: Phase 4 or plugin**
+- Multi-user editing conflicts not addressed
+- **For agencies managing client sites**:
+  - Draft comments/annotations (designer leaves feedback for content editor)
+  - Approval gates (content editor submits → workspace admin approves → publish)
+  - Activity feed (who changed what)
+- **Tech**: Real-time presence (who's editing) via WebSockets/Pusher
+- **MVP**: Lock pages when in use; show "User X is editing"
+
+### 12. **Revision Comparison (Visual Diff)**
+**Impact: Medium | Urgency: Phase 3**
+- Version history exists, but "what changed?" needs visual diff
+- **UX**: Side-by-side before/after; highlight changed blocks
+- **Alternative**: Text-based JSON diff (less user-friendly but faster to build)
+
+### 13. **Accessibility Checker**
+**Impact: Medium | Urgency: Phase 4**
+- Small businesses may not know WCAG requirements
+- **Add**: Real-time checks in editor:
+  - Missing alt text on images
+  - Low contrast text/background
+  - Missing heading hierarchy
+  - Empty links
+- **Library**: axe-core for automated checks
+
+### 14. **Undo/Redo Across Sessions**
+**Impact: Low-Medium | Urgency: Phase 3**
+- Easyblocks has in-session undo, but if user closes browser and returns, they lose undo stack
+- **Consider**: Persist operation log for X hours so undo works across sessions
+
+### 15. **Template Library & Page Cloning**
+**Impact: High | Urgency: Phase 3**
+- Non-technical users struggle with blank canvas
+- **Need**:
+  - Pre-built page templates (homepage, about, contact, menu, product grid)
+  - "Duplicate page" feature (clone page + content)
+  - "Save page as template" (workspace-specific reusable templates)
+- **Easyblocks**: Templates feature exists; integrate into your flow
+
+## Technical & Security Concerns
+
+### 16. **Rate Limiting & Abuse Prevention (Granular)**
+**Impact: High | Urgency: Phase 1**
+- Story mentions rate limiting, but needs detail:
+  - Per-IP limits (uploads, form submits, comment posts)
+  - Per-workspace limits (API calls, storage quota)
+  - DDoS protection (Cloudflare in front)
+- **Redis**: Use for sliding window rate limit counters
+
+### 17. **Backup & Restore UI (User-Facing)**
+**Impact: High | Urgency: Phase 2**
+- Story says "backups" but doesn't specify UX
+- **Workspace admins need**:
+  - "Download full site export" (JSON/ZIP with media)
+  - "Restore from backup" (rollback entire site, not just one page)
+  - Auto-backup before bulk operations (theme change, plugin update)
+- **Database backups** are ops-level; this is user-level safety net
+
+### 18. **Storage Quota Management**
+**Impact: High | Urgency: Phase 2**
+- MinIO uploads with no quota = $$$ surprise bills
+- **Add**: Per-workspace storage limits
+  - Show usage dashboard (X GB used / Y GB limit)
+  - Block uploads when over quota
+  - Auto-delete media variants if original is deleted
+  - Orphan detection (media not referenced in any page/database)
+
+### 19. **Domain & SSL Management**
+**Impact: High | Urgency: Phase 2**
+- Story mentions "Domain mapping" but no detail
+- **Small businesses need**:
+  - DNS instructions (simple, visual)
+  - Auto SSL via Let's Encrypt (Caddy/Traefik, or Next.js hosting handles it)
+  - HTTPS redirect enforcement
+  - www vs non-www canonicalization
+- **UX**: "Connect domain" wizard with DNS verification checks
+
+### 20. **Legal & Compliance (GDPR/Cookie Consent)**
+**Impact: High | Urgency: Phase 4**
+- EU businesses need cookie consent banners
+- **Add**:
+  - Cookie consent block (customizable text, accept/reject)
+  - Privacy policy & terms generator (templates)
+  - Data export (user requests their data → JSON export)
+  - Right to be forgotten (delete user data, anonymize comments)
+- **Tech**: Cookie consent needs to block analytics/tracking scripts until accepted
+
+### 21. **Webhooks & Integrations**
+**Impact: Medium | Urgency: Phase 5**
+- Power users want to connect external tools
+- **Add**: Webhook system for events (page.published, form.submitted, comment.created)
+- **Use cases**: Trigger Netlify rebuild, send Slack notification, sync to CRM
+
+### 22. **API (Headless CMS Mode)**
+**Impact: Low-Medium | Urgency: Phase 6 or later**
+- Some users want to use your CMS as data source for mobile apps or separate frontends
+- **Add**: Public JSON API (read-only) for published content
+  - `/api/public/pages/:slug` → page + rendered blocks
+  - `/api/public/tables/:slug/rows` → custom database data
+  - API keys for authentication
+- **Alternative**: GraphQL for flexible querying
+
+## Performance & Scale Considerations
+
+### 23. **Asset Optimization Pipeline**
+**Impact: High | Urgency: Phase 4**
+- Story mentions sharp for variants, but need:
+  - Auto-convert to WebP/AVIF (with fallbacks)
+  - Lazy loading by default on rendered pages
+  - Image CDN (Cloudflare Images, Imgix, or DIY with MinIO + nginx caching)
+  - Video transcoding (ffmpeg) for web-optimized formats
+  - Max file size enforcement (prevent 20MB PNG uploads)
+
+### 24. **Page Speed & Core Web Vitals Monitoring**
+**Impact: Medium | Urgency: Phase 5**
+- Published pages need to be fast
+- **Add**: Lighthouse score tracking per page
+  - Run on publish; warn if score drops below threshold
+  - Show LCP, FID, CLS metrics
+- **Integration**: Sentry has performance monitoring; use it
+
+### 25. **Caching Strategy**
+**Impact: High | Urgency: Phase 2**
+- Next.js ISR mentioned but needs detail:
+  - Which pages are static, ISR, or SSR?
+  - Cache invalidation on publish (purge page cache)
+  - Redis cache for database queries (expensive JSONB queries)
+  - CDN cache for media (already planned via MinIO, but set proper headers)
+
+### 26. **Database Indexing for Custom Databases**
+**Impact: High | Urgency: Phase 5**
+- JSONB queries can be slow without indexes
+- **Add**: Auto-create GIN indexes on JSONB columns
+- **User-facing**: "Index this field" checkbox for commonly queried fields
+- **Alternative**: Denormalize hot data into separate columns (e.g., product price as real column, not JSONB)
+
+## Agency-Specific Pain Points (from experience)
+
+### 27. **White-Label & Multi-Brand**
+**Impact: Medium | Urgency: Later**
+- Agencies manage multiple clients; need to rebrand admin UI per workspace
+- **Add**: Workspace-level branding (logo, colors in admin sidebar)
+- **Alternative**: Full white-label (custom domain for admin, e.g., `cms.clientdomain.com`)
+
+### 28. **Client Handoff & Training**
+**Impact: High | Urgency: Phase 6**
+- Non-technical users WILL break things
+- **Add**:
+  - In-app tutorials (onboarding tooltips, video guides)
+  - Sandbox mode (test changes without affecting live site)
+  - Support widget (Intercom, Crisp) in admin
+  - Documentation site (searchable help articles)
+
+### 29. **Billing & Subscription Management**
+**Impact: High if SaaS | Urgency: Phase 6 or separate**
+- If this is a product (not just client sites), you need:
+  - Stripe subscription integration
+  - Plan limits (pages, storage, bandwidth)
+  - Usage metering (overage charges)
+  - Invoicing & receipts
+  - Trial period logic
+- **Alternative**: Sell as self-hosted license (no billing, customer manages infra)
+
+### 30. **Staging Environments**
+**Impact: High | Urgency: Phase 5**
+- Agencies need to test changes before showing clients
+- **Add**: Per-workspace staging site (separate subdomain)
+  - Clone production → staging
+  - Test changes in staging
+  - Promote staging → production (one-click merge)
+
+## Recommendations Summary
+
+### Must-Have Before Launch (Phases 1-3)
+1. Content scheduling (publish/unpublish dates)
+2. Full SEO management (meta, sitemap, structured data)
+3. Site search for end users
+4. Storage quota enforcement
+5. Domain/SSL setup wizard
+6. Email infrastructure (transactional emails)
+7. Global sections/components (headers/footers)
+8. Template library & page cloning
+9. Mobile preview in editor
+10. Backup/restore UI
+
+### Should-Have for Target Market (Phases 4-5)
+1. Multi-language support (hotels/restaurants need this)
+2. Visual form builder (beyond basic contact form)
+3. E-commerce catalog (decide: native vs. integration)
+4. Booking system (decide: native vs. integration)
+5. Asset optimization (WebP/AVIF, lazy loading)
+6. Accessibility checker
+7. Revision comparison (visual diff)
+8. Collaboration features (comments, approval workflow)
+
+### Nice-to-Have (Phase 6+)
+1. Webhooks & integrations
+2. Headless API mode
+3. White-label/multi-brand
+4. Staging environments
+5. Page speed monitoring
+6. Newsletter/email marketing
+
+### Decision Points (Document These)
+- **E-commerce**: Build native or integrate Shopify/Snipcart?
+- **Bookings**: Build native or integrate external systems?
+- **i18n**: Full multi-language or English-only v1?
+- **Business model**: SaaS (need billing) or self-hosted product?
+- **Deployment**: Cloud (Vercel/Railway) or self-hosted (Docker)?
+
+## Final Thoughts
+
+The plan in story.md is **solid for a v1 technical foundation**, but it reads like an engineer-focused MVP. From an agency perspective serving actual small businesses, you're missing **half the features they'll ask for in the first month**:
+
+- "Can I schedule this to go live next Monday?"
+- "How do I show up on Google?"
+- "Can customers book a table?"
+- "I need this in English and Spanish."
+- "Can I take payments?"
+
+**Advice**: After Phase 2 (before diving into custom databases in Phase 5), pause and build out the SEO, search, scheduling, and form builder features. These have higher ROI for small businesses than flexible data modeling.
+
+Also, **Easyblocks is powerful but has a learning curve** for non-technical users. You'll need extensive templates and hand-holding, or they'll stare at a blank canvas. Budget time for UX polish, onboarding, and documentation—agencies live or die by how fast clients can self-serve.
+
+Good luck. This is an ambitious but achievable project if scoped correctly. 🚀
