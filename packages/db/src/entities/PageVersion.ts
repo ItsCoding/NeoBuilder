@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  Relation,
 } from "typeorm";
 import { Page } from "./Page";
 
@@ -17,7 +18,7 @@ export class PageVersion {
 
   @ManyToOne(() => Page, (page) => page.versions, { eager: true })
   @JoinColumn({ name: "page_id" })
-  page!: Page;
+  page!: Relation<Page>;
 
   @Column({ type: "int" })
   version!: number;

@@ -14,16 +14,22 @@ import { MediaAsset } from "./entities/MediaAsset";
 import { MediaTag } from "./entities/MediaTag";
 import { MediaVariant } from "./entities/MediaVariant";
 import { MediaAssetTag } from "./entities/MediaAssetTag";
+import { readAdminEnv } from "@neobuilder/core";
 
 let dataSource: DataSource | null = null;
-
+let dsPromise: Promise<DataSource> | null = null;
 function createDataSource() {
+  const env = readAdminEnv();
   return new DataSource({
     type: "postgres",
-    url: process.env.DATABASE_URL,
+    host: env.DATABASE_HOST,
+    port: Number(env.DATABASE_PORT),
+    username: env.DATABASE_USERNAME,
+    password: env.DATABASE_PASSWORD,
+    database: env.DATABASE_NAME,
     synchronize: true,
     migrationsRun: false,
-    logging: true,
+    logging: false,
     entities: [
       User,
       Workspace,
@@ -45,15 +51,13 @@ function createDataSource() {
 
 
 export const getDataSource = async (): Promise<DataSource> => {
-  try {
-    if (dataSource) return dataSource;
-    console.log("Initializing new data source...");
-    const newDs = createDataSource();
-    dataSource = await newDs.initialize();
-    console.log("Data source initialized.");
-    return dataSource;
-  } catch (error) {
-    console.log("Error initializing data source:", error);
-    throw error;
+  if (dataSource) return dataSource;
+  if (!dsPromise) {
+    const ds = createDataSource();
+    dsPromise = ds.initialize().then((initializedDs) => {
+      dataSource = initializedDs;
+      return initializedDs;
+    });
   }
+  return dsPromise!;
 };

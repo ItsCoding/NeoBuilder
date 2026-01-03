@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  Relation,
 } from "typeorm";
 import { WorkspaceMember } from "./WorkspaceMember";
 
@@ -26,5 +27,5 @@ export class User {
   updatedAt!: Date;
 
   @OneToMany(() => WorkspaceMember, (member) => member.user)
-  memberships!: WorkspaceMember[];
+  memberships!: Relation<WorkspaceMember[]>;
 }

@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Relation,
 } from "typeorm";
 import { Workspace } from "./Workspace";
 
@@ -16,7 +17,7 @@ export class PageTemplate {
 
   @ManyToOne(() => Workspace, (workspace) => workspace.templates, { eager: true, nullable: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace?: Workspace | null;
+  workspace?: Relation<Workspace> | null;
 
   @Column({ length: 120 })
   name!: string;
@@ -27,10 +28,10 @@ export class PageTemplate {
   @Column({ type: "text", nullable: true })
   description?: string;
 
-  @Column({ name: "cover_url", nullable: true })
+  @Column({ type: "text", name: "cover_url", nullable: true })
   coverUrl?: string | null;
 
-  @Column({ name: "category", length: 60, default: "General" })
+  @Column({ type: "varchar", name: "category", length: 60, default: "General" })
   category!: string;
 
   @Column({ name: "is_system", default: false })
@@ -39,9 +40,9 @@ export class PageTemplate {
   @Column({ name: "document_json", type: "jsonb" })
   documentJson!: unknown;
 
-  @CreateDateColumn({ name: "created_at" })
+  @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamp with time zone" })
   updatedAt!: Date;
 }

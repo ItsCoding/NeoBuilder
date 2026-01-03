@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, Index, CreateDateColumn, Relation } from "typeorm";
 import { MediaAsset } from "./MediaAsset";
 import { MediaTag } from "./MediaTag";
 
@@ -10,12 +10,12 @@ export class MediaAssetTag {
 
   @ManyToOne(() => MediaAsset, (asset) => asset.tagRefs, { onDelete: "CASCADE" })
   @JoinColumn({ name: "asset_id" })
-  asset!: MediaAsset;
+  asset!: Relation<MediaAsset>;
 
   @ManyToOne(() => MediaTag, (tag) => tag.assetTags, { onDelete: "CASCADE" })
   @JoinColumn({ name: "tag_id" })
-  tag!: MediaTag;
-
+  tag!: Relation<MediaTag>;
+  
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;
 }

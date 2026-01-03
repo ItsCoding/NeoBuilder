@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, Index, Relation } from "typeorm";
 import { MediaAsset } from "./MediaAsset";
 
 @Entity({ name: "media_variants" })
@@ -9,7 +9,7 @@ export class MediaVariant {
 
   @ManyToOne(() => MediaAsset, (asset) => asset.variants, { onDelete: "CASCADE" })
   @JoinColumn({ name: "asset_id" })
-  asset!: MediaAsset;
+  asset!: Relation<MediaAsset>;
 
   @Column({ name: "variant_type", length: 60 })
   variantType!: string;

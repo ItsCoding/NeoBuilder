@@ -8,6 +8,7 @@ import {
   OneToMany,
   JoinColumn,
   Index,
+  Relation,
 } from "typeorm";
 import { Workspace } from "./Workspace";
 import { MediaAsset } from "./MediaAsset";
@@ -20,17 +21,17 @@ export class MediaFolder {
 
   @ManyToOne(() => Workspace, (workspace) => workspace.folders, { eager: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace!: Workspace;
+  workspace!: Relation<Workspace>;
 
   @ManyToOne(() => MediaFolder, (folder) => folder.children, { nullable: true })
   @JoinColumn({ name: "parent_id" })
-  parent?: MediaFolder | null;
+  parent?: Relation<MediaFolder> | null;
 
   @OneToMany(() => MediaFolder, (folder) => folder.parent)
-  children!: MediaFolder[];
+  children!: Relation<MediaFolder>[];
 
   @OneToMany(() => MediaAsset, (asset) => asset.folder)
-  assets!: MediaAsset[];
+  assets!: Relation<MediaAsset>[];
 
   @Column({ length: 180 })
   name!: string;

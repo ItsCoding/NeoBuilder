@@ -6,6 +6,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Relation,
 } from "typeorm";
 import { User } from "./User";
 import { Workspace } from "./Workspace";
@@ -18,15 +19,15 @@ export class WorkspaceMember {
 
   @ManyToOne(() => User, (user) => user.memberships, { eager: true })
   @JoinColumn({ name: "user_id" })
-  user!: User;
+  user!: Relation<User>;
 
   @ManyToOne(() => Workspace, (workspace) => workspace.members, { eager: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace!: Workspace;
+  workspace!: Relation<Workspace>;
 
   @ManyToOne(() => Role, { eager: true })
   @JoinColumn({ name: "role_id" })
-  role!: Role;
+  role!: Relation<Role>;
 
   @Column({ name: "invited_by", nullable: true })
   invitedBy?: string;

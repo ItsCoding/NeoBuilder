@@ -299,7 +299,7 @@ export async function listMediaAssets(filters: MediaListFilters) {
     .leftJoinAndSelect("asset.tagRefs", "tagRef")
     .leftJoinAndSelect("tagRef.tag", "tag")
     .where("asset.workspace_id = :workspaceId", { workspaceId: filters.workspaceId })
-    .orderBy("asset.created_at", "DESC");
+    .orderBy("asset.createdAt", "DESC");
 
   if (filters.folderId) qb.andWhere("asset.folder_id = :folderId", { folderId: filters.folderId });
   if (filters.includeOrphans) qb.andWhere("asset.usage_count = 0");

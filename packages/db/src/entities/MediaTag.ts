@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, Index, CreateDateColumn, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, Index, CreateDateColumn, JoinColumn, Relation } from "typeorm";
 import { Workspace } from "./Workspace";
 import { MediaAssetTag } from "./MediaAssetTag";
 
@@ -10,13 +10,14 @@ export class MediaTag {
 
   @ManyToOne(() => Workspace, (workspace) => workspace.tags, { eager: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace!: Workspace;
+  workspace!: Relation<Workspace>;
 
   @OneToMany(() => MediaAssetTag, (mat) => mat.tag)
-  assetTags!: MediaAssetTag[];
+  assetTags!: Relation<MediaAssetTag[]>;
 
   @Column({ length: 120 })
   name!: string;
+  
 
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;

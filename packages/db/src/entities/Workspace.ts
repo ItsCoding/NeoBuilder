@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, Relation } from "typeorm";
 import { WorkspaceMember } from "./WorkspaceMember";
 import { WorkspaceQuota } from "./WorkspaceQuota";
 import { Page } from "./Page";
@@ -23,26 +23,25 @@ export class Workspace {
   createdAt!: Date;
 
   @OneToMany(() => WorkspaceMember, (member) => member.workspace)
-  members!: WorkspaceMember[];
+  members!: Relation<WorkspaceMember[]>;
 
   @OneToMany(() => WorkspaceQuota, (quota) => quota.workspace)
-  quotas!: WorkspaceQuota[];
-
+  quotas!: Relation<WorkspaceQuota[]>;
   @OneToMany(() => Page, (page) => page.workspace)
-  pages!: Page[];
+  pages!: Relation<Page[]>;
 
   @OneToMany(() => GlobalSection, (section) => section.workspace)
-  sections!: GlobalSection[];
+  sections!: Relation<GlobalSection[]>;
 
   @OneToMany(() => PageTemplate, (template) => template.workspace)
-  templates!: PageTemplate[];
+  templates!: Relation<PageTemplate[]>;
 
   @OneToMany(() => MediaFolder, (folder) => folder.workspace)
-  folders!: MediaFolder[];
+  folders!: Relation<MediaFolder[]>;
 
   @OneToMany(() => MediaAsset, (asset) => asset.workspace)
-  assets!: MediaAsset[];
+  assets!: Relation<MediaAsset[]>;
 
   @OneToMany(() => MediaTag, (tag) => tag.workspace)
-  tags!: MediaTag[];
+  tags!: Relation<MediaTag[]>;
 }

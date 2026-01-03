@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   Index,
+  Relation,
 } from "typeorm";
 import { Workspace } from "./Workspace";
 
@@ -20,7 +21,7 @@ export class GlobalSection {
 
   @ManyToOne(() => Workspace, (workspace) => workspace.sections, { eager: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace!: Workspace;
+  workspace!: Relation<Workspace>;
 
   @Column({ length: 120 })
   name!: string;

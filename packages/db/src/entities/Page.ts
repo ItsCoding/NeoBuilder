@@ -8,6 +8,7 @@ import {
   JoinColumn,
   OneToMany,
   Index,
+  Relation,
 } from "typeorm";
 import { Workspace } from "./Workspace";
 import { PageVersion } from "./PageVersion";
@@ -22,7 +23,7 @@ export class Page {
 
   @ManyToOne(() => Workspace, (workspace) => workspace.pages, { eager: true })
   @JoinColumn({ name: "workspace_id" })
-  workspace!: Workspace;
+  workspace!: Relation<Workspace>;
 
   @Column()
   title!: string;
@@ -55,5 +56,5 @@ export class Page {
   updatedAt!: Date;
 
   @OneToMany(() => PageVersion, (version) => version.page)
-  versions!: PageVersion[];
+  versions!: Relation<PageVersion[]>;
 }
