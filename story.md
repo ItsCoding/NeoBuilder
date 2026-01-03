@@ -392,16 +392,16 @@ Phase 2 — Core CMS entities (pages, publishing workflow, preview)
 - [x] Storage quota management: per-workspace storage limits, usage dashboard (X GB used / Y GB limit), block uploads when over quota, auto-delete media variants when original is deleted; storage page showing quota usage and orphan cleanup tools.
 
 Phase 3 — Visual builder (Craft.js) + basic block library
-- [ ] Integrate Craft.js: editor page in packages/admin mounting CraftEditor; packages/editor for nodes/components registry and resolver.
-- [ ] Remove Easyblocks artifacts/setup: uninstall Easyblocks packages, remove legacy registry, placeholders, and in-repo theme tokens.
-- [ ] Page editor UI: top toolbar (title, status, preview, save, publish, settings), left sidebar (blocks palette, layers tree, device switcher), center canvas, right sidebar (block properties, page settings), bottom bar (version history, scores).
-- [ ] Document persistence: DB tables for drafts/published; store Craft.js serialized JSON state for drafts and published snapshots.
-- [ ] Core blocks (Craft.js components): paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery, accordion, modal, links, buttons, chips, divider.
-- [ ] Global sections: implement GlobalSection table for reusable header/footer/banner components; allow referencing in multiple pages via Craft.js external references; edit once updates everywhere; dedicated admin page for managing global sections.
-- [ ] Template library: pre-built page templates (homepage, about, contact, menu, product grid); "Duplicate page" feature (clone page + content); "Save page as template" for workspace-specific reusable templates; templates gallery admin page using Craft.js templates.
-- [ ] Mobile preview: explicit mobile/tablet/desktop viewport switcher in editor toolbar; device-specific screenshot for version history.
-- [ ] Theming primitives: define theme tokens for color/font/space; map to CSS variables/Tailwind (migrate any Easyblocks token sets to new structure).
-- [ ] Admin UI polish: breadcrumbs, toast notifications, confirmation modals for destructive actions, loading states (skeleton screens, spinners, progress bars), empty states with helpful CTAs, inline editing patterns, contextual action menus.
+- [x] Integrate Craft.js: editor page in packages/admin mounting CraftEditor; packages/editor for nodes/components registry and resolver.
+- [x] Remove Easyblocks artifacts/setup: uninstall Easyblocks packages, remove legacy registry, placeholders, and in-repo theme tokens.
+- [x] Page editor UI: top toolbar (title, status, preview, save, publish, settings), left sidebar (blocks palette, layers tree, device switcher), center canvas, right sidebar (block properties, page settings), bottom bar (version history, scores).
+- [x] Document persistence: DB tables for drafts/published; store Craft.js serialized JSON state for drafts and published snapshots.
+- [x] Core blocks (Craft.js components): paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery, accordion, modal, links, buttons, chips, divider.
+- [x] Global sections: implement GlobalSection table for reusable header/footer/banner components; allow referencing in multiple pages via Craft.js external references; edit once updates everywhere; dedicated admin page for managing global sections.
+- [x] Template library: pre-built page templates (homepage, about, contact, menu, product grid); "Duplicate page" feature (clone page + content); "Save page as template" for workspace-specific reusable templates; templates gallery admin page using Craft.js templates.
+- [x] Mobile preview: explicit mobile/tablet/desktop viewport switcher in editor toolbar; device-specific screenshot for version history.
+- [x] Theming primitives: define theme tokens for color/font/space; map to CSS variables/Tailwind (migrate any Easyblocks token sets to new structure).
+- [x] Admin UI polish: breadcrumbs, toast notifications, confirmation modals for destructive actions, loading states (skeleton screens, spinners, progress bars), empty states with helpful CTAs, inline editing patterns, contextual action menus.
 
 - Phase 4 — Public site rendering (packages/web)
 - [ ] Set up packages/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).

@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "jsx": "preserve",
+    "outDir": "./dist",
     "moduleResolution": "Bundler",
     "types": [
       "node",

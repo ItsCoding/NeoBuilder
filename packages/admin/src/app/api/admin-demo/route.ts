@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { requirePermission } from "../../../../lib/authz";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { requirePermission } from "../../../lib/authz";
+import { authOptions } from "../../../lib/auth-options";
 
 export async function GET() {
   const session = await getServerSession(authOptions);

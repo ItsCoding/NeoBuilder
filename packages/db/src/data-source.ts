@@ -7,6 +7,8 @@ import { Role } from "./entities/Role";
 import { WorkspaceQuota } from "./entities/WorkspaceQuota";
 import { Page } from "./entities/Page";
 import { PageVersion } from "./entities/PageVersion";
+import { GlobalSection } from "./entities/GlobalSection";
+import { PageTemplate } from "./entities/PageTemplate";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -14,5 +16,5 @@ export const AppDataSource = new DataSource({
   synchronize: false,
   migrationsRun: false,
   logging: false,
-  entities: [User, Workspace, WorkspaceMember, Role, WorkspaceQuota, Page, PageVersion],
+  entities: [User, Workspace, WorkspaceMember, Role, WorkspaceQuota, Page, PageVersion, GlobalSection, PageTemplate],
 });

@@ -1,12 +1,21 @@
 import { AppDataSource } from "../data-source";
 import { Page, PageStatus } from "../entities/Page";
 import { PageVersion } from "../entities/PageVersion";
+import { Workspace } from "../entities/Workspace";
 import { IsNull, LessThanOrEqual, Not } from "typeorm";
 
-async function ensureDataSource() {
+export async function ensureDataSource() {
   if (!AppDataSource.isInitialized) {
     await AppDataSource.initialize();
   }
+}
+
+async function getWorkspace(workspaceId: string) {
+  await ensureDataSource();
+  const workspaceRepo = AppDataSource.getRepository(Workspace);
+  const workspace = await workspaceRepo.findOne({ where: { id: workspaceId } });
+  if (!workspace) throw new Error("Workspace not found");
+  return workspace;
 }
 
 async function nextVersionNumber(page: Page) {
@@ -17,7 +26,7 @@ async function nextVersionNumber(page: Page) {
 
 export async function publishPage(options: {
   pageId: string;
-  snapshotJson: unknown;
+  snapshotJson?: unknown;
   createdBy?: string;
 }) {
   await ensureDataSource();
@@ -28,21 +37,23 @@ export async function publishPage(options: {
   if (!page) throw new Error("Page not found");
 
   const versionNumber = await nextVersionNumber(page);
+  const snapshot = options.snapshotJson ?? page.draftContent ?? page.publishedContent ?? {};
 
   const version = versionRepo.create({
     page,
     version: versionNumber,
-    snapshotJson: options.snapshotJson ?? page.draftContent ?? page.publishedContent ?? {},
+    snapshotJson: snapshot,
     createdBy: options.createdBy,
   });
   await versionRepo.save(version);
 
   page.status = "published" satisfies PageStatus;
-  page.publishedContent = version.snapshotJson;
+  page.publishedContent = snapshot;
   page.scheduledPublishAt = null;
   page.deletedAt = null;
 
-  return pageRepo.save(page);
+  const saved = await pageRepo.save(page);
+  return { page: saved, version };
 }
 
 export async function rollbackPageVersion(options: { pageId: string; version: number; createdBy?: string }) {
@@ -144,4 +155,57 @@ export async function findScheduleConflicts(workspaceId: string, slug: string) {
     },
     order: { scheduledPublishAt: "ASC" },
   });
+}
+
+export async function findPageBySlug(options: { workspaceId: string; slug: string }) {
+  await ensureDataSource();
+  const pageRepo = AppDataSource.getRepository(Page);
+  return pageRepo.findOne({ where: { slug: options.slug, workspace: { id: options.workspaceId } } });
+}
+
+export async function findPageWithVersions(options: { workspaceId: string; slug: string }) {
+  await ensureDataSource();
+  const pageRepo = AppDataSource.getRepository(Page);
+  const versionRepo = AppDataSource.getRepository(PageVersion);
+  const page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: options.workspaceId } } });
+  if (!page) return null;
+  const versions = await versionRepo.find({ where: { page }, order: { version: "DESC" } });
+  return { page, versions };
+}
+
+type UpsertDraftOptions = {
+  workspaceId: string;
+  slug: string;
+  title?: string;
+  draftContent?: unknown;
+  status?: PageStatus;
+  scheduledPublishAt?: Date | null;
+  scheduledUnpublishAt?: Date | null;
+};
+
+export async function upsertPageDraft(options: UpsertDraftOptions) {
+  await ensureDataSource();
+  const workspace = await getWorkspace(options.workspaceId);
+  const pageRepo = AppDataSource.getRepository(Page);
+
+  let page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: workspace.id } } });
+  if (!page) {
+    const fallbackTitle = options.title ?? options.slug.replace(/^\//, "").replace(/[-_]/g, " ") || "Untitled page";
+    page = pageRepo.create({
+      workspace,
+      slug: options.slug,
+      title: fallbackTitle,
+      status: options.status ?? "draft",
+    });
+  }
+
+  if (options.title) page.title = options.title;
+  if (options.draftContent !== undefined) page.draftContent = options.draftContent;
+  if (options.status) page.status = options.status;
+  if (options.scheduledPublishAt !== undefined) page.scheduledPublishAt = options.scheduledPublishAt;
+  if (options.scheduledUnpublishAt !== undefined) page.scheduledUnpublishAt = options.scheduledUnpublishAt;
+
+  page.deletedAt = null;
+
+  return pageRepo.save(page);
 }

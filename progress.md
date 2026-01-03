@@ -16,3 +16,11 @@
 - Added settings scaffolds for SEO (meta/sitemap/robots/structured data + score checks), navigation/redirect validation, domains (DNS + staging/preview rows), backups (history + pre-flight backup note), and storage (quota/orphan cleanup block upload notice).
 - Added placeholders for remaining admin sections (sections, media, databases, forms, comments, analytics, redirects, themes, templates) to keep routing unblocked.
 - Wired preview flow in web app with draft mode banner and preview/exit API routes.
+
+## Phase 3 completion (visual builder + persistence)
+
+- Completed Craft.js builder integration with block registry, templates, and page editor UI (palette, inspector, responsive viewport, templates/global sections).
+- Added persistence APIs for pages: load by slug with versions, upsert draft snapshots, and publish snapshots to PageVersion + publishedContent fields.
+- Expanded db package to include GlobalSection/PageTemplate entities in the data source and helper workflows for saving drafts and publishing versions.
+- Added theme primitives (tokens + CSS variables) and wired the canvas/blocks to use them; exported theme helpers for consumers.
+- Polished admin UX with global toasts and breadcrumb navigation across dashboard routes.

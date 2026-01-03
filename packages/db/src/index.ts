@@ -6,4 +6,6 @@ export * from "./entities/Role";
 export * from "./entities/WorkspaceQuota";
 export * from "./entities/Page";
 export * from "./entities/PageVersion";
+export * from "./entities/GlobalSection";
+export * from "./entities/PageTemplate";
 export * from "./services/pageWorkflow";

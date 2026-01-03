@@ -2,6 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } f
 import { WorkspaceMember } from "./WorkspaceMember";
 import { WorkspaceQuota } from "./WorkspaceQuota";
 import { Page } from "./Page";
+import { GlobalSection } from "./GlobalSection";
+import { PageTemplate } from "./PageTemplate";
 
 @Entity({ name: "workspaces" })
 export class Workspace {
@@ -25,4 +27,10 @@ export class Workspace {
 
   @OneToMany(() => Page, (page) => page.workspace)
   pages!: Page[];
+
+  @OneToMany(() => GlobalSection, (section) => section.workspace)
+  sections!: GlobalSection[];
+
+  @OneToMany(() => PageTemplate, (template) => template.workspace)
+  templates!: PageTemplate[];
 }
