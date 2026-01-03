@@ -3,7 +3,7 @@ import { extname } from "path";
 import { Client as MinioClient } from "minio";
 import sharp from "sharp";
 import { lookup as lookupMime } from "mime-types";
-import { AppDataSource } from "../data-source";
+import { getDataSource } from "../data-source";
 import { MediaAsset, type MediaStatus } from "../entities/MediaAsset";
 import { MediaFolder } from "../entities/MediaFolder";
 import { MediaTag } from "../entities/MediaTag";
@@ -53,7 +53,8 @@ async function ensureBucket() {
 
 async function resolveFolder(workspaceId: string, folderId?: string | null) {
   if (!folderId) return null;
-  const repo = AppDataSource.getRepository(MediaFolder);
+  const ds = await getDataSource();
+  const repo = ds.getRepository(MediaFolder);
   const folder = await repo.findOne({ where: { id: folderId, workspace: { id: workspaceId } } });
   if (!folder) throw new Error("Folder not found");
   return folder;
@@ -61,7 +62,8 @@ async function resolveFolder(workspaceId: string, folderId?: string | null) {
 
 async function ensureTags(workspaceId: string, tagNames: string[] = []) {
   if (!tagNames.length) return [] as MediaTag[];
-  const repo = AppDataSource.getRepository(MediaTag);
+  const ds = await getDataSource();
+  const repo = ds.getRepository(MediaTag);
   const existing = await repo.find({ where: { workspace: { id: workspaceId }, name: In(tagNames) } });
   const missing = tagNames.filter((name) => !existing.some((tag) => tag.name === name));
   const workspace = await loadWorkspace(workspaceId);
@@ -71,7 +73,8 @@ async function ensureTags(workspaceId: string, tagNames: string[] = []) {
 }
 
 async function sumUsageBytes(workspaceId: string) {
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await getDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const raw = await repo
     .createQueryBuilder("asset")
     .select("COALESCE(SUM(asset.sizeBytes), 0)", "total")
@@ -102,7 +105,8 @@ function buildStorageKey(workspaceId: string, folder: MediaFolder | null, fileNa
 }
 
 async function attachTags(asset: MediaAsset, tagNames: string[]) {
-  const tagRepo = AppDataSource.getRepository(MediaAssetTag);
+  const ds = await getDataSource();
+  const tagRepo = ds.getRepository(MediaAssetTag);
   if (tagNames.length === 0) {
     await tagRepo.delete({ asset: { id: asset.id } as MediaAsset });
     return;
@@ -127,7 +131,7 @@ export async function signMediaUpload(options: {
   folderId?: string | null;
   tags?: string[];
 }) {
-  await ensureDataSource();
+  const ds = await ensureDataSource();
   const mime = lookupMime(options.fileName) || options.mime;
   ensureAllowedMime(mime);
   if (options.sizeBytes > DEFAULT_UPLOAD_LIMIT_BYTES) throw new Error("File exceeds upload limit");
@@ -135,7 +139,7 @@ export async function signMediaUpload(options: {
 
   const workspace = await loadWorkspace(options.workspaceId);
   const folder = await resolveFolder(options.workspaceId, options.folderId);
-  const assetRepo = AppDataSource.getRepository(MediaAsset);
+  const assetRepo = ds.getRepository(MediaAsset);
 
   const cleanName = sanitizeFileName(options.fileName);
   const asset = assetRepo.create({
@@ -171,8 +175,8 @@ export async function completeMediaUpload(options: {
   alt?: string | null;
   tags?: string[];
 }) {
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const asset = await repo.findOne({ where: { id: options.assetId }, relations: ["variants", "tagRefs", "tagRefs.tag"] });
   if (!asset) throw new Error("Asset not found");
 
@@ -193,8 +197,8 @@ export async function completeMediaUpload(options: {
 }
 
 export async function updateMediaAsset(options: { assetId: string; alt?: string | null; folderId?: string | null; tags?: string[] }) {
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const asset = await repo.findOne({ where: { id: options.assetId }, relations: ["workspace", "folder", "tagRefs", "tagRefs.tag"] });
   if (!asset) throw new Error("Asset not found");
 
@@ -207,9 +211,9 @@ export async function updateMediaAsset(options: { assetId: string; alt?: string 
 }
 
 export async function generateVariantsForAsset(assetId: string, sizes = [320, 640, 1280], formats: ("webp" | "avif")[] = ["webp", "avif"]) {
-  await ensureDataSource();
-  const assetRepo = AppDataSource.getRepository(MediaAsset);
-  const variantRepo = AppDataSource.getRepository(MediaVariant);
+  const ds = await ensureDataSource();
+  const assetRepo = ds.getRepository(MediaAsset);
+  const variantRepo = ds.getRepository(MediaVariant);
   const asset = await assetRepo.findOne({ where: { id: assetId } });
   if (!asset) throw new Error("Asset not found");
   if (!asset.mime.startsWith("image/")) return asset;
@@ -286,8 +290,8 @@ export type MediaListFilters = {
 };
 
 export async function listMediaAssets(filters: MediaListFilters) {
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const qb = repo
     .createQueryBuilder("asset")
     .leftJoinAndSelect("asset.folder", "folder")
@@ -308,14 +312,14 @@ export async function listMediaAssets(filters: MediaListFilters) {
 }
 
 export async function listMediaFolders(workspaceId: string) {
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaFolder);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaFolder);
   return repo.find({ where: { workspace: { id: workspaceId } }, order: { path: "ASC" } });
 }
 
 export async function createMediaFolder(options: { workspaceId: string; name: string; parentId?: string | null }) {
-  await ensureDataSource();
-  const folderRepo = AppDataSource.getRepository(MediaFolder);
+  const ds = await ensureDataSource();
+  const folderRepo = ds.getRepository(MediaFolder);
   const workspace = await loadWorkspace(options.workspaceId);
   const parent = await resolveFolder(options.workspaceId, options.parentId);
   const slug = sanitizeFileName(options.name);
@@ -325,8 +329,8 @@ export async function createMediaFolder(options: { workspaceId: string; name: st
 }
 
 export async function updateMediaFolder(options: { folderId: string; name?: string; parentId?: string | null }) {
-  await ensureDataSource();
-  const folderRepo = AppDataSource.getRepository(MediaFolder);
+  const ds = await ensureDataSource();
+  const folderRepo = ds.getRepository(MediaFolder);
   const folder = await folderRepo.findOne({ where: { id: options.folderId }, relations: ["parent", "workspace"] });
   if (!folder) throw new Error("Folder not found");
   if (options.name) folder.name = options.name;
@@ -338,9 +342,9 @@ export async function updateMediaFolder(options: { folderId: string; name?: stri
 }
 
 export async function deleteMediaAssets(assetIds: string[]) {
-  await ensureDataSource();
+  const ds = await ensureDataSource();
   if (!assetIds.length) return;
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const repo = ds.getRepository(MediaAsset);
   const assets = await repo.find({ where: { id: In(assetIds) }, relations: ["variants"] });
   const bucket = await ensureBucket();
   const client = getStorageClient();
@@ -351,8 +355,8 @@ export async function deleteMediaAssets(assetIds: string[]) {
 
 export async function markMediaUsage(assetIds: string[]) {
   if (!assetIds.length) return;
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const now = new Date();
   await repo
     .createQueryBuilder()
@@ -363,8 +367,8 @@ export async function markMediaUsage(assetIds: string[]) {
 }
 
 export async function listOrphanedAssets(workspaceId: string) {
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository(MediaAsset);
+  const ds = await ensureDataSource();
+  const repo = ds.getRepository(MediaAsset);
   return repo.find({ where: { workspace: { id: workspaceId }, usageCount: 0 }, relations: ["variants", "folder"] });
 }
 

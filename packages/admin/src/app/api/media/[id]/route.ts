@@ -2,10 +2,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { invalid, readBody } from "../utils";
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
-  const { AppDataSource, ensureDataSource } = await import("@neobuilder/db");
-  const db = await import("@neobuilder/db");
-  await ensureDataSource();
-  const repo = AppDataSource.getRepository((db as any).MediaAsset as any);
+  const { getDataSource, MediaAsset } = await import("@neobuilder/db");
+  const ds = await getDataSource();
+  const repo = ds.getRepository(MediaAsset);
   const asset = await repo.findOne({ where: { id: params.id }, relations: ["variants", "tagRefs", "tagRefs.tag", "folder"] });
   if (!asset) return invalid("Asset not found", 404);
   return NextResponse.json({ asset });

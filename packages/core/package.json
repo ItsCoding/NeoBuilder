@@ -11,5 +11,9 @@
   "devDependencies": {
     "husky": "^8.0.3",
     "typescript": "5.9.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -b"
   }
 }

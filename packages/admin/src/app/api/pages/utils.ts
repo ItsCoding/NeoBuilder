@@ -1,7 +1,7 @@
 export async function resolveWorkspaceId(searchParams: URLSearchParams, preferredId?: string) {
-  const { AppDataSource, Workspace, ensureDataSource } = await import("@neobuilder/db");
-  await ensureDataSource();
-  const workspaceRepo = AppDataSource.getRepository(Workspace);
+  const { getDataSource, Workspace } = await import("@neobuilder/db");
+  const ds = await getDataSource();
+  const workspaceRepo = ds.getRepository(Workspace);
   const candidate = preferredId ?? searchParams.get("workspaceId") ?? process.env.DEFAULT_WORKSPACE_ID ?? undefined;
 
   if (candidate) {

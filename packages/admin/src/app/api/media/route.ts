@@ -2,17 +2,23 @@ import { NextResponse, type NextRequest } from "next/server";
 import { invalid, resolveWorkspaceId, readBody } from "./utils";
 
 export async function GET(request: NextRequest) {
-  const params = request.nextUrl.searchParams;
-  const workspaceId = await resolveWorkspaceId(params);
-  const folderId = params.get("folderId");
-  const search = params.get("search") ?? undefined;
-  const tagNames = params.get("tags")?.split(",").filter(Boolean);
-  const includeOrphans = params.get("orphans") === "true";
-  const limit = Number(params.get("limit") ?? 50);
+  try {
+    const params = request.nextUrl.searchParams;
+    const workspaceId = await resolveWorkspaceId(params);
+    const folderId = params.get("folderId");
+    const search = params.get("search") ?? undefined;
+    const tagNames = params.get("tags")?.split(",").filter(Boolean);
+    const includeOrphans = params.get("orphans") === "true";
+    const limit = Number(params.get("limit") ?? 50);
 
-  const { listMediaAssets } = await import("@neobuilder/db");
-  const assets = await listMediaAssets({ workspaceId, folderId, search, tagNames, includeOrphans, limit });
-  return NextResponse.json({ assets });
+    const { listMediaAssets } = await import("@neobuilder/db");
+    const assets = await listMediaAssets({ workspaceId, folderId, search, tagNames, includeOrphans, limit });
+    return NextResponse.json({ assets });
+  } catch (error) {
+    console.error("/api/media GET failed", error);
+    const message = error instanceof Error ? error.message : "Unable to load media";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {

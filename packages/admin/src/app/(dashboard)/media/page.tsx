@@ -70,6 +70,11 @@ export default function MediaPage() {
 
   const loadFolders = useCallback(async () => {
     const res = await fetch("/api/media/folders", { cache: "no-store" });
+    if (!res.ok) {
+      const message = await res.text();
+      toast.error("Failed to load folders", { description: message });
+      return;
+    }
     const data = await res.json();
     setFolders(data.folders ?? []);
   }, []);
@@ -81,12 +86,22 @@ export default function MediaPage() {
     if (tagFilter) params.set("tags", tagFilter);
     if (showOrphans) params.set("orphans", "true");
     const res = await fetch(`/api/media?${params.toString()}`, { cache: "no-store" });
+    if (!res.ok) {
+      const message = await res.text();
+      toast.error("Failed to load media", { description: message });
+      return;
+    }
     const data = await res.json();
     setAssets(data.assets ?? []);
   }, [folderId, search, tagFilter, showOrphans]);
 
   const loadStats = useCallback(async () => {
     const res = await fetch("/api/media/stats", { cache: "no-store" });
+    if (!res.ok) {
+      const message = await res.text();
+      toast.error("Failed to load media stats", { description: message });
+      return;
+    }
     const data = await res.json();
     setStats(data.stats ?? null);
   }, []);

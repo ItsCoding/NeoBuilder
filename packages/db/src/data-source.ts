@@ -15,26 +15,45 @@ import { MediaTag } from "./entities/MediaTag";
 import { MediaVariant } from "./entities/MediaVariant";
 import { MediaAssetTag } from "./entities/MediaAssetTag";
 
-export const AppDataSource = new DataSource({
-  type: "postgres",
-  url: process.env.DATABASE_URL,
-  synchronize: false,
-  migrationsRun: false,
-  logging: false,
-  entities: [
-    User,
-    Workspace,
-    WorkspaceMember,
-    Role,
-    WorkspaceQuota,
-    Page,
-    PageVersion,
-    GlobalSection,
-    PageTemplate,
-    MediaFolder,
-    MediaAsset,
-    MediaTag,
-    MediaVariant,
-    MediaAssetTag,
-  ],
-});
+let dataSource: DataSource | null = null;
+
+function createDataSource() {
+  return new DataSource({
+    type: "postgres",
+    url: process.env.DATABASE_URL,
+    synchronize: true,
+    migrationsRun: false,
+    logging: true,
+    entities: [
+      User,
+      Workspace,
+      WorkspaceMember,
+      Role,
+      WorkspaceQuota,
+      Page,
+      PageVersion,
+      GlobalSection,
+      PageTemplate,
+      MediaFolder,
+      MediaAsset,
+      MediaTag,
+      MediaVariant,
+      MediaAssetTag,
+    ],
+  });
+}
+
+
+export const getDataSource = async (): Promise<DataSource> => {
+  try {
+    if (dataSource) return dataSource;
+    console.log("Initializing new data source...");
+    const newDs = createDataSource();
+    dataSource = await newDs.initialize();
+    console.log("Data source initialized.");
+    return dataSource;
+  } catch (error) {
+    console.log("Error initializing data source:", error);
+    throw error;
+  }
+};

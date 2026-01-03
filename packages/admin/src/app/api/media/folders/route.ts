@@ -2,10 +2,16 @@ import { NextResponse, type NextRequest } from "next/server";
 import { invalid, resolveWorkspaceId, readBody } from "../utils";
 
 export async function GET(request: NextRequest) {
-  const workspaceId = await resolveWorkspaceId(request.nextUrl.searchParams);
-  const { listMediaFolders } = await import("@neobuilder/db");
-  const folders = await listMediaFolders(workspaceId);
-  return NextResponse.json({ folders });
+  try {
+    const workspaceId = await resolveWorkspaceId(request.nextUrl.searchParams);
+    const { listMediaFolders } = await import("@neobuilder/db");
+    const folders = await listMediaFolders(workspaceId);
+    return NextResponse.json({ folders });
+  } catch (error) {
+    console.error("/api/media/folders GET failed", error);
+    const message = error instanceof Error ? error.message : "Unable to load folders";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {

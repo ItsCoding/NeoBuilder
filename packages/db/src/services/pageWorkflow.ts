@@ -1,11 +1,12 @@
-import { AppDataSource } from "../data-source";
+import { getDataSource } from "../data-source";
 import { Page, PageStatus } from "../entities/Page";
 import { PageVersion } from "../entities/PageVersion";
 import { IsNull, LessThanOrEqual, Not } from "typeorm";
 import { ensureDataSource, loadWorkspace } from "./base";
 
 async function nextVersionNumber(page: Page) {
-  const repo = AppDataSource.getRepository(PageVersion);
+  const ds = await getDataSource();
+  const repo = ds.getRepository(PageVersion);
   const latest = await repo.findOne({ where: { page }, order: { version: "DESC" } });
   return (latest?.version ?? 0) + 1;
 }
@@ -15,9 +16,9 @@ export async function publishPage(options: {
   snapshotJson?: unknown;
   createdBy?: string;
 }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
-  const versionRepo = AppDataSource.getRepository(PageVersion);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
+  const versionRepo = ds.getRepository(PageVersion);
 
   const page = await pageRepo.findOne({ where: { id: options.pageId } });
   if (!page) throw new Error("Page not found");
@@ -43,9 +44,9 @@ export async function publishPage(options: {
 }
 
 export async function rollbackPageVersion(options: { pageId: string; version: number; createdBy?: string }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
-  const versionRepo = AppDataSource.getRepository(PageVersion);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
+  const versionRepo = ds.getRepository(PageVersion);
 
   const page = await pageRepo.findOne({ where: { id: options.pageId } });
   if (!page) throw new Error("Page not found");
@@ -71,8 +72,8 @@ export async function rollbackPageVersion(options: { pageId: string; version: nu
 }
 
 export async function renamePage(options: { pageId: string; title: string; slug: string }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
   const page = await pageRepo.findOne({ where: { id: options.pageId } });
   if (!page) throw new Error("Page not found");
   page.title = options.title;
@@ -81,8 +82,8 @@ export async function renamePage(options: { pageId: string; title: string; slug:
 }
 
 export async function changeStatus(options: { pageId: string; status: PageStatus }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
   const page = await pageRepo.findOne({ where: { id: options.pageId } });
   if (!page) throw new Error("Page not found");
   page.status = options.status;
@@ -90,8 +91,8 @@ export async function changeStatus(options: { pageId: string; status: PageStatus
 }
 
 export async function softDeletePage(options: { pageId: string }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
   const page = await pageRepo.findOne({ where: { id: options.pageId } });
   if (!page) throw new Error("Page not found");
   page.deletedAt = new Date();
@@ -100,8 +101,8 @@ export async function softDeletePage(options: { pageId: string }) {
 }
 
 export async function runScheduledPublishing(now = new Date()) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
 
   const dueToPublish = await pageRepo.find({
     where: {
@@ -130,8 +131,8 @@ export async function runScheduledPublishing(now = new Date()) {
 }
 
 export async function findScheduleConflicts(workspaceId: string, slug: string) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
   return pageRepo.find({
     where: {
       slug,
@@ -144,15 +145,15 @@ export async function findScheduleConflicts(workspaceId: string, slug: string) {
 }
 
 export async function findPageBySlug(options: { workspaceId: string; slug: string }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
   return pageRepo.findOne({ where: { slug: options.slug, workspace: { id: options.workspaceId } } });
 }
 
 export async function findPageWithVersions(options: { workspaceId: string; slug: string }) {
-  await ensureDataSource();
-  const pageRepo = AppDataSource.getRepository(Page);
-  const versionRepo = AppDataSource.getRepository(PageVersion);
+  const ds = await ensureDataSource();
+  const pageRepo = ds.getRepository(Page);
+  const versionRepo = ds.getRepository(PageVersion);
   const page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: options.workspaceId } } });
   if (!page) return null;
   const versions = await versionRepo.find({ where: { page }, order: { version: "DESC" } });
@@ -170,9 +171,9 @@ type UpsertDraftOptions = {
 };
 
 export async function upsertPageDraft(options: UpsertDraftOptions) {
-  await ensureDataSource();
+  const ds = await ensureDataSource();
   const workspace = await loadWorkspace(options.workspaceId);
-  const pageRepo = AppDataSource.getRepository(Page);
+  const pageRepo = ds.getRepository(Page);
 
   let page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: workspace.id } } });
   if (!page) {
