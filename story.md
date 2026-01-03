@@ -2,14 +2,14 @@ NeoBuilder — Small Business Website Builder & CMS
 -------------------------------------------------
 
 Goal
-- Build a Next.js + TypeScript CMS that lets small businesses (shops/restaurants/hotels) create and publish sites via a visual block editor (Easyblocks) with drafts, preview, and rollback.
+- Build a Next.js + TypeScript CMS that lets small businesses (shops/restaurants/hotels) create and publish sites via a visual block editor (Craft.js) with drafts, preview, and rollback.
 
 Who it serves
 - Non-technical owners/managers who need: page creation, visual layout, media library, custom data (tables), forms, comments, themes, and plugins to extend functionality.
 
 Key capabilities (from discussion + architect + core review)
-- Visual editor (Easyblocks) with core blocks: paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery (folder/table-bound), accordion, modal, links, buttons, chips, divider.
-- High-level blocks and templates: split hero, product list/carousel, pre-themed galleries, design templates via Easyblocks templates.
+- Visual editor (Craft.js) with core blocks: paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery (folder/table-bound), accordion, modal, links, buttons, chips, divider.
+- High-level blocks and templates: split hero, product list/carousel, pre-themed galleries, design templates via Craft.js templates.
 - Global sections: reusable header/footer/banner components that update across all pages; edit once, applies everywhere.
 - Template library: pre-built page templates (homepage, about, contact, menu); page cloning; save-as-template for workspace-specific reuse.
 - Media management: S3-compatible (self-hosted MinIO); folders (nested), tags (free-form autocomplete), CRUD; uploads via backend-mediated flow (no direct public S3); variants (sharp) with WebP/AVIF auto-conversion; optional video thumbs (ffmpeg); lazy loading; storage quota per workspace with usage dashboard; orphan detection.
@@ -34,21 +34,21 @@ Key capabilities (from discussion + architect + core review)
 - Observability & ops: Sentry, granular rate limiting (per-IP, per-workspace), audit log, backups/retention; Redis for SSR cache/queues/rate limit; BullMQ for background jobs; deployment playbook; caching strategy (SSR with Redis + CDN edge cache, purge-on-publish, client-side fetching for dynamic data).
 
 Architecture
-- Two surfaces: public site (SSR with selective client-side fetching) and admin app (auth + RBAC + Easyblocks editor page).
+- Two surfaces: public site (SSR with selective client-side fetching) and admin app (auth + RBAC + Craft.js editor page).
 - Rendering strategy: Pure SSR for page content, metadata, and SEO; client-side fetching only for highly dynamic data (booking calendars, real-time availability). No SSG/ISR since this is multi-tenant SaaS.
 - Monorepo (npm workspaces): packages/admin, packages/web, packages/ui, packages/core, db (typrom), editor, plugins/*, themes/*, tooling configs.
 - Data modeling highlights: Workspace, Site, Domain; Page + PageVersion; BuilderDocument (draft/published); MediaAsset/Folder/Tag/Variant; TableDefinition/FieldDefinition/Row; FormDefinition/Submission; CommentThread/Comment.
 - Storage: PostgreSQL + typrom; JSONB for dynamic row data; Redis for caching/rate limiting; MinIO for media (backend handles signed uploads/ingest).
 
-Public page rendering flow (Easyblocks → React)
+Public page rendering flow (Craft.js → React)
 
 Overview
-The public site (packages/web) renders pages via pure SSR (Server-Side Rendering). Each request fetches the Easyblocks document JSON from the database, resolves external references, and transforms it into React components on the server. The fully-rendered HTML is sent to the client with embedded metadata for SEO. Highly dynamic components (booking calendars, real-time availability) hydrate on the client and fetch their data via API endpoints.
+The public site (packages/web) renders pages via pure SSR (Server-Side Rendering). Each request fetches the Craft.js serialized document JSON from the database, resolves external references, and transforms it into React components on the server. The fully-rendered HTML is sent to the client with embedded metadata for SEO. Highly dynamic components (booking calendars, real-time availability) hydrate on the client and fetch their data via API endpoints.
 
 Content authoring → storage → rendering lifecycle
 1. **Authoring (Admin App)**
-   - User edits page in Easyblocks visual editor (packages/admin)
-   - Editor state is Easyblocks document JSON: hierarchical tree of block definitions with props
+   - User edits page in the Craft.js visual editor (packages/admin)
+   - Editor state is the Craft.js serialized JSON: hierarchical representation of nodes/components with props
    - Each block has: type (e.g., "Paragraph", "Card", "RepeatableGrid"), props (text, styles, external references like mediaId or tableId)
    - Document saved to database as draft (BuilderDocument table, or Page.draftContent JSON column)
    - On publish: snapshot copied to PageVersion and Page.publishedContent
@@ -74,11 +74,11 @@ Content authoring → storage → rendering lifecycle
    - Build a "resolution map": `{ mediaId: { url, alt, variants }, tableId: [rows...] }`
 
 5. **React Component Rendering**
-   - Pass document JSON + resolution map to Easyblocks renderer (`@easyblocks/core`)
-   - Easyblocks walks the document tree and for each block:
-     - Look up block definition from registry (packages/editor/blocks/*)
-     - Each block definition exports a React component + schema
-     - Instantiate component with resolved props (e.g., Image component receives `src={resolvedMedia.url}` instead of `mediaId`)
+    - Pass document JSON + resolution map to the renderer (mapped to `@craftjs/core` components)
+    - The renderer walks the serialized state and for each node:
+       - Look up component definition from the registry (packages/editor/components/*)
+       - Each component definition exports a React component + editable props schema
+       - Instantiate component with resolved props (e.g., Image component receives `src={resolvedMedia.url}` instead of `mediaId`)
    - For repeatable blocks (RepeatableGrid, RepeatableList):
      - Template strings like `{{name}}` and `{{price}}` are replaced with actual row values
      - Renderer creates one component instance per row
@@ -86,7 +86,7 @@ Content authoring → storage → rendering lifecycle
    - Result: full React tree
 
 6. **Styling & Theming**
-   - Easyblocks blocks use design tokens (colors, fonts, spacing) defined in config
+   - Blocks use design tokens (colors, fonts, spacing) defined in config
    - Tokens mapped to CSS variables in page `<head>`:
      ```css
      :root {
@@ -97,7 +97,7 @@ Content authoring → storage → rendering lifecycle
      ```
    - Blocks apply tokens via CSS: `color: var(--color-primary)`
    - Active theme (selected in admin) determines token values
-   - Responsive styling: Easyblocks blocks store per-breakpoint props; renderer outputs responsive CSS
+   - Responsive styling: Craft.js blocks store per-breakpoint props; renderer outputs responsive CSS
 
 7. **HTML Output (SSR)**
    - React tree rendered to HTML string on the server for each request
@@ -133,7 +133,7 @@ Example: Global Section (header) rendering
 2. Multiple pages reference this section via `{ type: "GlobalSection", props: { sectionId: "header-456" } }`
 3. Public site request for any page (SSR):
    - Document contains GlobalSection reference
-   - Resolve sectionId: fetch GlobalSection.content (another Easyblocks document)
+   - Resolve sectionId: fetch GlobalSection.content (another Craft.js document)
    - Recursively resolve externals in section content (logo mediaId → URL)
    - Render section content as React components
    - Insert rendered section HTML at reference point in page
@@ -178,7 +178,7 @@ Performance considerations (SSR + caching)
 - **Multi-tenant isolation**: cache keys scoped by workspaceId to prevent cross-tenant cache pollution
 - **External resolution batching**: fetch all mediaIds in one query, all tableIds in parallel to minimize DB round-trips
 - **RepeatableGrid with large datasets**: limit rows fetched (e.g., 100 max), implement pagination, or use client-side "load more" for UX
-- **Easyblocks renderer**: fast (pure React, no DOM manipulation), but complex pages (50+ blocks) may take 50-100ms to render; acceptable for SSR
+- **Craft.js renderer**: fast (pure React, no DOM manipulation) when rendering serialized component trees; complex pages (50+ blocks) may take 50-100ms to render; acceptable for SSR
 - **React Server Components**: use for zero-JS blocks (paragraphs, headings, static images) to reduce client-side bundle
 - **Dynamic data isolation**: booking calendars, availability checkers hydrate after initial SSR and fetch data client-side; keeps main content cacheable
 - **Stale-while-revalidate pattern**: serve cached HTML immediately, refresh cache in background if TTL expired
@@ -190,8 +190,8 @@ Error handling
 
 Constraints & considerations
 - Plugin loading is build-time only (Next.js bundling + security). Marketplace = install package + redeploy.
-- Theming via Easyblocks tokens mapped to CSS variables/Tailwind.
-- External references in Easyblocks documents: store IDs for media/table rows and resolve at render time.
+- Theming via design tokens mapped to CSS variables/Tailwind.
+- External references in Craft.js serialized documents: store IDs for media/table rows and resolve at render time.
 - Spam defense mandatory for comments/forms; abuse controls and rate limits required.
 - Multi-tenancy: every entity scoped by workspaceId (and optionally siteId); domain mapping.
 
@@ -250,10 +250,10 @@ Pages list/management
 - "Create page" button (opens page type selector: blank, from template)
 - Calendar view toggle (shows scheduled publish dates)
 
-Page editor (Easyblocks)
+Page editor (Craft.js)
 - Top toolbar: page title (editable inline), status dropdown, "Preview" button, "Save draft" button, "Publish" button (or "Schedule"), "Settings" icon
 - Left sidebar: blocks palette (drag to canvas), layers tree, device switcher (mobile/tablet/desktop)
-- Center canvas: Easyblocks editor with live preview
+- Center canvas: Craft.js editor with live preview
 - Right sidebar: selected block properties, page settings tab (SEO meta, slug, schedule, template, featured image)
 - Bottom bar: version history dropdown ("Restore to version X"), accessibility score, performance score
 
@@ -360,6 +360,9 @@ Admin UI/UX patterns
 - Responsive admin: works on tablet (sidebar collapses to hamburger menu on mobile)
 - Dark mode support: optional user preference toggle
 
+Craft.js context — why Craft.js
+- Craft.js is a React-first framework for building drag-and-drop page editors (core package: `@craftjs/core`). The editor exposes `Editor`, `Frame`, and `Element` primitives and serializes editor state to a JSON tree that can be saved as a draft or published snapshot. Integration pattern: run the editor client-side in the admin, persist the serialized JSON server-side, and use a renderer on the server to map serialized nodes to React components for SSR. Note: the editor UI is client-only (DOM-dependent); the serialized state is safe for server rendering — migrate legacy block JSON by mapping old block types to Craft.js component definitions and migrating theme/token sets as needed.
+
 Implementation plan (raw, phased)
 
 - Phase 1 — Foundation & scaffolding
@@ -388,30 +391,31 @@ Phase 2 — Core CMS entities (pages, publishing workflow, preview)
 - [x] Backup & restore UI: "Download full site export" (JSON/ZIP with media), "Restore from backup" with rollback entire site capability, auto-backup before bulk operations (theme change, plugin update); dedicated Backups admin page with history, schedule, manual backup.
 - [x] Storage quota management: per-workspace storage limits, usage dashboard (X GB used / Y GB limit), block uploads when over quota, auto-delete media variants when original is deleted; storage page showing quota usage and orphan cleanup tools.
 
-Phase 3 — Visual builder (Easyblocks) + basic block library
-- [ ] Integrate Easyblocks: editor page in packages/admin mounting EasyblocksEditor; packages/editor for config + block registry.
+Phase 3 — Visual builder (Craft.js) + basic block library
+- [ ] Integrate Craft.js: editor page in packages/admin mounting CraftEditor; packages/editor for nodes/components registry and resolver.
+- [ ] Remove Easyblocks artifacts/setup: uninstall Easyblocks packages, remove legacy registry, placeholders, and in-repo theme tokens.
 - [ ] Page editor UI: top toolbar (title, status, preview, save, publish, settings), left sidebar (blocks palette, layers tree, device switcher), center canvas, right sidebar (block properties, page settings), bottom bar (version history, scores).
-- [ ] Document persistence: DB tables for drafts/published; optional Easyblocks cloud backend for prototyping.
-- [ ] Core blocks: paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery, accordion, modal, links, buttons, chips, divider.
-- [ ] Global sections: implement GlobalSection table for reusable header/footer/banner components; allow referencing in multiple pages via Easyblocks external data; edit once updates everywhere; dedicated admin page for managing global sections.
-- [ ] Template library: pre-built page templates (homepage, about, contact, menu, product grid); "Duplicate page" feature (clone page + content); "Save page as template" for workspace-specific reusable templates; templates gallery admin page using Easyblocks Templates.
+- [ ] Document persistence: DB tables for drafts/published; store Craft.js serialized JSON state for drafts and published snapshots.
+- [ ] Core blocks (Craft.js components): paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery, accordion, modal, links, buttons, chips, divider.
+- [ ] Global sections: implement GlobalSection table for reusable header/footer/banner components; allow referencing in multiple pages via Craft.js external references; edit once updates everywhere; dedicated admin page for managing global sections.
+- [ ] Template library: pre-built page templates (homepage, about, contact, menu, product grid); "Duplicate page" feature (clone page + content); "Save page as template" for workspace-specific reusable templates; templates gallery admin page using Craft.js templates.
 - [ ] Mobile preview: explicit mobile/tablet/desktop viewport switcher in editor toolbar; device-specific screenshot for version history.
-- [ ] Theming primitives: define Easyblocks tokens for color/font/space; map to CSS variables/Tailwind.
+- [ ] Theming primitives: define theme tokens for color/font/space; map to CSS variables/Tailwind (migrate any Easyblocks token sets to new structure).
 - [ ] Admin UI polish: breadcrumbs, toast notifications, confirmation modals for destructive actions, loading states (skeleton screens, spinners, progress bars), empty states with helpful CTAs, inline editing patterns, contextual action menus.
 
 - Phase 4 — Public site rendering (packages/web)
 - [ ] Set up packages/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).
 - [ ] Page request handler: receive incoming request, extract workspace from domain/subdomain, look up Page by slug + workspaceId, check publish status and scheduledUnpublishAt.
-- [ ] External data resolver: implement resolution system for external references in Easyblocks documents:
+- [ ] External data resolver: implement resolution system for external references in Craft.js serialized documents:
   - [ ] MediaAsset resolver: fetch media by IDs, build resolution map with CDN URLs, alt text, variants (WebP/AVIF).
   - [ ] TableDefinition + Row resolver: fetch table schema, query rows matching filters/sort/limit, resolve nested media link fields.
   - [ ] GlobalSection resolver: recursively resolve section content and its external references.
   - [ ] Batching optimization: group all mediaIds and tableIds, execute parallel queries to minimize DB round-trips.
-- [ ] Easyblocks renderer integration: configure @easyblocks/core for SSR:
-  - [ ] Register all block components (from packages/editor/blocks).
-  - [ ] Pass document JSON + resolution map to renderer.
-  - [ ] Generate React tree with resolved props (media URLs, table row data).
-  - [ ] Handle template string replacement in repeatable blocks ({{name}}, {{price}}, {{media.main}}).
+- [ ] Craft.js renderer integration: configure server-side rendering for serialized Craft.js state:
+   - [ ] Register all component definitions (from packages/editor/components).
+   - [ ] Pass document JSON + resolution map to renderer.
+   - [ ] Generate React tree with resolved props (media URLs, table row data).
+   - [ ] Handle template string replacement in repeatable blocks ({{name}}, {{price}}, {{media.main}}).
 - [ ] Theme system integration: load active theme for workspace, inject design tokens as CSS variables in <head>, apply token-based styling to blocks.
 - [ ] SEO & metadata injection: generate <head> content (title, meta description, OG tags, Twitter cards, canonical URL), render JSON-LD structured data (LocalBusiness, Restaurant, Hotel schemas).
 - [ ] HTML output optimization: render React tree to HTML string, apply lazy loading to images below fold, generate <picture> tags with WebP/AVIF + fallbacks, add hydration markers for interactive blocks.
@@ -437,7 +441,7 @@ Phase 5 — Media management (folders, tags, CRUD) + editor integration
 - [ ] Asset optimization pipeline: auto-convert images to WebP/AVIF (with fallbacks); generate responsive variants (thumbs, multiple sizes); video transcoding (ffmpeg) for web-optimized formats; max file size enforcement (prevent large uploads).
 - [ ] Processing: background jobs (BullMQ via Redis) for thumbnails/responsive variants; store variant metadata; lazy loading by default on rendered pages; proper CDN cache headers.
 - [ ] Orphan detection: filter showing unused media, bulk cleanup action in storage management page.
-- [ ] Easyblocks integration: media picker widget in editor; store mediaId in documents; render via CDN URL + variants with WebP/AVIF support.
+- [ ] Craft.js integration: media picker widget in editor; store mediaId in documents; render via CDN URL + variants with WebP/AVIF support.
 - [ ] packages/web integration: update media resolver to fetch and use MediaVariant records; generate responsive <picture> elements with srcset for different sizes; automatic WebP/AVIF format selection with fallbacks; update CDN URL generation to point to variant storage keys.
 
 Phase 6 — Custom databases (user-defined tables/fields) + data-bound blocks
@@ -453,8 +457,8 @@ Phase 6 — Custom databases (user-defined tables/fields) + data-bound blocks
 
 Phase 7 — Plugins, themes, high-level blocks, and product hardening
 - [ ] Plugin system v1 (build-time): plugin manifest + register() API; contributions for blocks/templates, field types, admin pages/settings, server hooks (publish, form submit); load from packages/plugins/*; compatibility rules; Integrations admin page (list plugins, enable/disable, configure).
-- [ ] packages/web plugin integration: load plugin-contributed blocks in rendering pipeline; register plugin blocks in Easyblocks renderer; execute plugin server hooks (pre-render, post-render, page-viewed); support plugin-defined external data resolvers.
-- [ ] Theme system: packages exporting Easyblocks token sets, CSS variables/Tailwind presets, block style variants; per-site theme selection; Themes admin page (installed themes cards with preview, activate, configure token values).
+- [ ] packages/web plugin integration: load plugin-contributed blocks in rendering pipeline; register plugin blocks in renderer (Craft.js or custom renderer); execute plugin server hooks (pre-render, post-render, page-viewed); support plugin-defined external data resolvers.
+- [ ] Theme system: packages exporting theme token sets, CSS variables/Tailwind presets, block style variants; per-site theme selection; Themes admin page (installed themes cards with preview, activate, configure token values).
 - [ ] packages/web theme integration: fetch active theme for workspace on each request; inject theme CSS variables in <head>; apply theme-specific Tailwind classes; support theme switching without cache invalidation (dynamic CSS injection).
 - [ ] High-level blocks + starter designs: split variants, product list/carousel (table-bound), pre-themed gallery/slider, design templates gallery.
 - [ ] Multi-language/localization (i18n): PageTranslation table; language switcher block; translation status indicators in admin; fallback to default language; routing via /en/about, /de/about; media alt text per locale; locale column on relevant tables; language management in General settings.
