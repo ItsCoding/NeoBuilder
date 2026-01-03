@@ -4,15 +4,16 @@
   "private": true,
   "packageManager": "npm@10.4.0",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "."
   ],
   "scripts": {
     "lint": "eslint \"packages/**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss,html}\"",
     "typecheck": "tsc -b",
     "prepare": "husky install",
-    "dev:admin": "next dev --turbo --port 3001 --hostname 0.0.0.0 --dir packages/admin",
-    "dev:web": "next dev --turbo --port 3000 --hostname 0.0.0.0 --dir packages/web"
+    "dev:admin": "npm run dev --workspace @neobuilder/admin -- --turbo --port 3001 --hostname 0.0.0.0",
+    "dev:web": "npm run dev --workspace @neobuilder/web -- --turbo --port 3000 --hostname 0.0.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

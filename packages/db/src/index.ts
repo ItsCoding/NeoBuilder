@@ -4,3 +4,6 @@ export * from "./entities/Workspace";
 export * from "./entities/WorkspaceMember";
 export * from "./entities/Role";
 export * from "./entities/WorkspaceQuota";
+export * from "./entities/Page";
+export * from "./entities/PageVersion";
+export * from "./services/pageWorkflow";

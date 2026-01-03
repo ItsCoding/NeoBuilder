@@ -22,7 +22,7 @@ services:
       - redis_data:/data
 
   minio:
-    image: quay.io/minio/minio:RELEASE.2024-01-14T16-58-21Z
+    image: minio/minio:latest
     restart: unless-stopped
     command: ["server", "/data", "--console-address", ":9001"]
     environment:

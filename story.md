@@ -374,19 +374,19 @@ Implementation plan (raw, phased)
 - [x] Add Sentry early (error tracking + performance monitoring).
 
 Phase 2 — Core CMS entities (pages, publishing workflow, preview)
-- [ ] Define page model: Page { id, workspaceId, slug, title, status, scheduledPublishAt, scheduledUnpublishAt, createdAt, updatedAt }; PageVersion { pageId, version, snapshotJson, createdBy, createdAt }.
-- [ ] Build admin interface foundation: navigation structure, sidebar, top bar with workspace switcher, routing setup for all admin pages, responsive layout with collapsible sidebar.
+- [x] Define page model: Page { id, workspaceId, slug, title, status, scheduledPublishAt, scheduledUnpublishAt, createdAt, updatedAt }; PageVersion { pageId, version, snapshotJson, createdBy, createdAt }.
+- [x] Build admin interface foundation: navigation structure, sidebar, top bar with workspace switcher, routing setup for all admin pages, responsive layout with collapsible sidebar.
 - Dashboard page: welcome banner, key metrics cards (pages/storage/visitors), recent activity feed, quick actions, site health status (sitemap generated, no broken links).
-- [ ] Admin flows: list/create/rename/change slug/delete (soft delete); status changes draft ↔ published; calendar view showing scheduled content.
-- [ ] Pages list UI: table view with filters (status/author/date), bulk actions, search, "Create page" flow with template selector.
-- [ ] Content scheduling: add scheduledPublishAt and scheduledUnpublishAt fields; implement cron job/scheduled task to auto-publish/unpublish; conflict warnings for overlapping schedules.
-- [ ] Versioning: create PageVersion on publish; rollback; show who/when/version; visual diff comparison (side-by-side before/after with highlighted changed blocks).
-- [ ] Preview: Next.js Draft Mode; signed preview URL; banner + exit preview.
-- [ ] Comprehensive SEO management: per-page meta (title, description, OG image, Twitter cards); auto-generated XML sitemap (dynamic, respects publish status); robots.txt management; canonical URL handling; structured data/JSON-LD (LocalBusiness, Product, Event schemas); redirect chain validation (no 301 → 301); SEO score checker in editor (missing meta, image alt text, heading structure); dedicated SEO admin page with tabs for defaults/sitemap/robots/structured data.
-- [ ] Site settings: SEO defaults, navigation menus (header/footer), redirects with validation.
-- [ ] Domain management: "Connect domain" wizard with DNS verification checks, domain mapping configuration, www vs non-www canonicalization; dedicated Domains admin page showing connection status, DNS instructions, test tools. Note: SSL/HTTPS handled by reverse proxy.
-- [ ] Backup & restore UI: "Download full site export" (JSON/ZIP with media), "Restore from backup" with rollback entire site capability, auto-backup before bulk operations (theme change, plugin update); dedicated Backups admin page with history, schedule, manual backup.
-- [ ] Storage quota management: per-workspace storage limits, usage dashboard (X GB used / Y GB limit), block uploads when over quota, auto-delete media variants when original is deleted; storage page showing quota usage and orphan cleanup tools.
+- [x] Admin flows: list/create/rename/change slug/delete (soft delete); status changes draft ↔ published; calendar view showing scheduled content.
+- [x] Pages list UI: table view with filters (status/author/date), bulk actions, search, "Create page" flow with template selector.
+- [x] Content scheduling: add scheduledPublishAt and scheduledUnpublishAt fields; implement cron job/scheduled task to auto-publish/unpublish; conflict warnings for overlapping schedules.
+- [x] Versioning: create PageVersion on publish; rollback; show who/when/version; visual diff comparison (side-by-side before/after with highlighted changed blocks).
+- [x] Preview: Next.js Draft Mode; signed preview URL; banner + exit preview.
+- [x] Comprehensive SEO management: per-page meta (title, description, OG image, Twitter cards); auto-generated XML sitemap (dynamic, respects publish status); robots.txt management; canonical URL handling; structured data/JSON-LD (LocalBusiness, Product, Event schemas); redirect chain validation (no 301 → 301); SEO score checker in editor (missing meta, image alt text, heading structure); dedicated SEO admin page with tabs for defaults/sitemap/robots/structured data.
+- [x] Site settings: SEO defaults, navigation menus (header/footer), redirects with validation.
+- [x] Domain management: "Connect domain" wizard with DNS verification checks, domain mapping configuration, www vs non-www canonicalization; dedicated Domains admin page showing connection status, DNS instructions, test tools. Note: SSL/HTTPS handled by reverse proxy.
+- [x] Backup & restore UI: "Download full site export" (JSON/ZIP with media), "Restore from backup" with rollback entire site capability, auto-backup before bulk operations (theme change, plugin update); dedicated Backups admin page with history, schedule, manual backup.
+- [x] Storage quota management: per-workspace storage limits, usage dashboard (X GB used / Y GB limit), block uploads when over quota, auto-delete media variants when original is deleted; storage page showing quota usage and orphan cleanup tools.
 
 Phase 3 — Visual builder (Easyblocks) + basic block library
 - [ ] Integrate Easyblocks: editor page in packages/admin mounting EasyblocksEditor; packages/editor for config + block registry.
