@@ -190,7 +190,8 @@ export async function upsertPageDraft(options: UpsertDraftOptions) {
 
   let page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: workspace.id } } });
   if (!page) {
-    const fallbackTitle = options.title ?? options.slug.replace(/^\//, "").replace(/[-_]/g, " ") || "Untitled page";
+    const slugTitle = options.slug.replace(/^\//, "").replace(/[-_]/g, " ");
+    const fallbackTitle = options.title ?? (slugTitle || "Untitled page");
     page = pageRepo.create({
       workspace,
       slug: options.slug,

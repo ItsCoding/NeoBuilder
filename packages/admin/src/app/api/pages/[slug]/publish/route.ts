@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { findPageBySlug, publishPage } from "@neobuilder/db";
 import { decodeSlugParam, resolveWorkspaceId } from "../../utils";
 
 function invalid(message: string, status = 400) {
@@ -16,6 +15,7 @@ export async function POST(request: NextRequest, { params }: { params: { slug: s
 
   const workspaceId = await resolveWorkspaceId(request.nextUrl.searchParams, body.workspaceId);
   const slug = decodeSlugParam(params.slug);
+  const { findPageBySlug, publishPage } = await import("@neobuilder/db");
   const page = await findPageBySlug({ workspaceId, slug });
   if (!page) return invalid("Page not found", 404);
 

@@ -24,3 +24,10 @@
 - Expanded db package to include GlobalSection/PageTemplate entities in the data source and helper workflows for saving drafts and publishing versions.
 - Added theme primitives (tokens + CSS variables) and wired the canvas/blocks to use them; exported theme helpers for consumers.
 - Polished admin UX with global toasts and breadcrumb navigation across dashboard routes.
+
+## Phase 4 completion (public rendering + APIs)
+
+- Replaced the static web surface with a catch-all SSR route that resolves workspace/locale from host + path, respects publish windows/unpublish schedules, and supports Draft Mode rendering of draftContent.
+- Added a Craft.js rendering pipeline (server-friendly block registry, template engine, external resolvers for media/tables/global sections) plus JSON-LD injection and theme CSS variable support.
+- Implemented Redis-backed HTML caching with structured cache keys and purge helper, alongside performance timing breadcrumbs for render instrumentation.
+- Introduced public API endpoints with rate limiting for calendar availability, form submissions (spam-aware), and site search; added lightweight client-side hydration for interactive blocks.

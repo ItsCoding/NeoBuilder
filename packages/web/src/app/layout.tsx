@@ -10,8 +10,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const { isEnabled } = draftMode();
+  const lang = process.env.DEFAULT_LOCALE ?? "en";
   return (
-    <html lang="en">
+    <html lang={lang}>
       <body>
         {isEnabled && (
           <div className="bg-amber-100 px-4 py-3 text-sm text-amber-900">

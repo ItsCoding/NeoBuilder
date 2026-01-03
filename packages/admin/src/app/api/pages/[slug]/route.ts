@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { findPageWithVersions, upsertPageDraft, type PageStatus } from "@neobuilder/db";
 import { decodeSlugParam, resolveWorkspaceId } from "../utils";
+import type { PageStatus } from "@neobuilder/db";
 
 const allowedStatus: PageStatus[] = ["draft", "scheduled", "published"];
 
@@ -19,6 +19,7 @@ function parseDateLike(value: unknown): Date | null | undefined {
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   const workspaceId = await resolveWorkspaceId(request.nextUrl.searchParams);
   const slug = decodeSlugParam(params.slug);
+  const { findPageWithVersions } = await import("@neobuilder/db");
   const result = await findPageWithVersions({ workspaceId, slug });
   if (!result) return invalid("Page not found", 404);
   return NextResponse.json({ page: result.page, versions: result.versions });
@@ -48,6 +49,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { slug: 
   } catch (error) {
     return invalid((error as Error).message);
   }
+
+  const { upsertPageDraft } = await import("@neobuilder/db");
 
   const page = await upsertPageDraft({
     workspaceId,

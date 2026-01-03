@@ -404,34 +404,34 @@ Phase 3 — Visual builder (Craft.js) + basic block library
 - [x] Admin UI polish: breadcrumbs, toast notifications, confirmation modals for destructive actions, loading states (skeleton screens, spinners, progress bars), empty states with helpful CTAs, inline editing patterns, contextual action menus.
 
 - Phase 4 — Public site rendering (packages/web)
-- [ ] Set up packages/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).
-- [ ] Page request handler: receive incoming request, extract workspace from domain/subdomain, look up Page by slug + workspaceId, check publish status and scheduledUnpublishAt.
-- [ ] External data resolver: implement resolution system for external references in Craft.js serialized documents:
-  - [ ] MediaAsset resolver: fetch media by IDs, build resolution map with CDN URLs, alt text, variants (WebP/AVIF).
-  - [ ] TableDefinition + Row resolver: fetch table schema, query rows matching filters/sort/limit, resolve nested media link fields.
-  - [ ] GlobalSection resolver: recursively resolve section content and its external references.
-  - [ ] Batching optimization: group all mediaIds and tableIds, execute parallel queries to minimize DB round-trips.
-- [ ] Craft.js renderer integration: configure server-side rendering for serialized Craft.js state:
-   - [ ] Register all component definitions (from packages/editor/components).
-   - [ ] Pass document JSON + resolution map to renderer.
-   - [ ] Generate React tree with resolved props (media URLs, table row data).
-   - [ ] Handle template string replacement in repeatable blocks ({{name}}, {{price}}, {{media.main}}).
-- [ ] Theme system integration: load active theme for workspace, inject design tokens as CSS variables in <head>, apply token-based styling to blocks.
-- [ ] SEO & metadata injection: generate <head> content (title, meta description, OG tags, Twitter cards, canonical URL), render JSON-LD structured data (LocalBusiness, Restaurant, Hotel schemas).
-- [ ] HTML output optimization: render React tree to HTML string, apply lazy loading to images below fold, generate <picture> tags with WebP/AVIF + fallbacks, add hydration markers for interactive blocks.
-- [ ] Redis caching layer: implement page HTML cache with TTL (5-60 min), cache key structure (workspaceId:pageSlug:locale), cache external data resolution results (media lookups, table queries).
-- [ ] Cache invalidation: on page publish, purge Redis cache for affected page, emit cache purge event for CDN edge cache, implement stale-while-revalidate pattern.
-- [ ] Client-side hydration: minimal JS bundle for interactive blocks (carousels, accordions, modals, forms), lazy load block-specific JS only when block present on page.
-- [ ] Dynamic data API endpoints: implement /api/public/* endpoints for client-side fetching:
-  - [ ] /api/public/calendar/availability: fetch booking availability for date range.
-  - [ ] /api/public/forms/submit: handle form submissions with spam validation.
-  - [ ] /api/public/search: site search endpoint (full-text search on pages/tables/media).
-  - [ ] Rate limiting on public APIs (per-IP, per-workspace).
-- [ ] Dynamic component placeholders: booking calendar, availability checker render as server-side placeholders with data attributes, hydrate client-side with API fetching.
-- [ ] Multi-language routing: implement locale detection from URL path (/en/about, /de/about), fetch PageTranslation if exists or fallback to default, resolve locale-specific strings (media alt text).
-- [ ] Error handling: missing external references (deleted media/tables) render fallback (placeholder image, empty list), malformed document JSON caught and logged, scheduled unpublish returns 404 with proper headers.
-- [ ] Performance monitoring: track SSR render time per page, log slow queries (>100ms), monitor cache hit/miss ratio, set up Sentry performance tracking for rendering pipeline.
-- [ ] Draft Mode implementation: /api/preview endpoint validates token and enables Draft Mode, rendering pipeline fetches Page.draftContent instead of publishedContent, preview banner with "Exit Preview" button.
+- [x] Set up packages/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).
+- [x] Page request handler: receive incoming request, extract workspace from domain/subdomain, look up Page by slug + workspaceId, check publish status and scheduledUnpublishAt.
+- [x] External data resolver: implement resolution system for external references in Craft.js serialized documents:
+   - [x] MediaAsset resolver: fetch media by IDs, build resolution map with CDN URLs, alt text, variants (WebP/AVIF).
+   - [x] TableDefinition + Row resolver: fetch table schema, query rows matching filters/sort/limit, resolve nested media link fields.
+   - [x] GlobalSection resolver: recursively resolve section content and its external references.
+   - [x] Batching optimization: group all mediaIds and tableIds, execute parallel queries to minimize DB round-trips.
+- [x] Craft.js renderer integration: configure server-side rendering for serialized Craft.js state:
+    - [x] Register all component definitions (from packages/editor/components).
+    - [x] Pass document JSON + resolution map to renderer.
+    - [x] Generate React tree with resolved props (media URLs, table row data).
+    - [x] Handle template string replacement in repeatable blocks ({{name}}, {{price}}, {{media.main}}).
+- [x] Theme system integration: load active theme for workspace, inject design tokens as CSS variables in <head>, apply token-based styling to blocks.
+- [x] SEO & metadata injection: generate <head> content (title, meta description, OG tags, Twitter cards, canonical URL), render JSON-LD structured data (LocalBusiness, Restaurant, Hotel schemas).
+- [x] HTML output optimization: render React tree to HTML string, apply lazy loading to images below fold, generate <picture> tags with WebP/AVIF + fallbacks, add hydration markers for interactive blocks.
+- [x] Redis caching layer: implement page HTML cache with TTL (5-60 min), cache key structure (workspaceId:pageSlug:locale), cache external data resolution results (media lookups, table queries).
+- [x] Cache invalidation: on page publish, purge Redis cache for affected page, emit cache purge event for CDN edge cache, implement stale-while-revalidate pattern.
+- [x] Client-side hydration: minimal JS bundle for interactive blocks (carousels, accordions, modals, forms), lazy load block-specific JS only when block present on page.
+- [x] Dynamic data API endpoints: implement /api/public/* endpoints for client-side fetching:
+   - [x] /api/public/calendar/availability: fetch booking availability for date range.
+   - [x] /api/public/forms/submit: handle form submissions with spam validation.
+   - [x] /api/public/search: site search endpoint (full-text search on pages/tables/media).
+   - [x] Rate limiting on public APIs (per-IP, per-workspace).
+- [x] Dynamic component placeholders: booking calendar, availability checker render as server-side placeholders with data attributes, hydrate client-side with API fetching.
+- [x] Multi-language routing: implement locale detection from URL path (/en/about, /de/about), fetch PageTranslation if exists or fallback to default, resolve locale-specific strings (media alt text).
+- [x] Error handling: missing external references (deleted media/tables) render fallback (placeholder image, empty list), malformed document JSON caught and logged, scheduled unpublish returns 404 with proper headers.
+- [x] Performance monitoring: track SSR render time per page, log slow queries (>100ms), monitor cache hit/miss ratio, set up Sentry performance tracking for rendering pipeline.
+- [x] Draft Mode implementation: /api/preview endpoint validates token and enables Draft Mode, rendering pipeline fetches Page.draftContent instead of publishedContent, preview banner with "Exit Preview" button.
 
 Phase 5 — Media management (folders, tags, CRUD) + editor integration
 - [ ] DB: MediaFolder { id, workspaceId, parentId, name, path }; MediaAsset { id, workspaceId, folderId, storageKey, mime, size, width, height, duration, alt, createdAt }; MediaTag { id, workspaceId, name } + join table; MediaVariant { assetId, variantType, storageKey, width, height, format }.

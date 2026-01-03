@@ -4,6 +4,9 @@
     "lib": ["ES2020", "DOM"],
     "module": "ESNext",
     "moduleResolution": "Node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
     "allowJs": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -16,7 +19,8 @@
     "paths": {
       "@neobuilder/core/*": ["packages/core/src/*"],
       "@neobuilder/db/*": ["packages/db/src/*"],
-      "@neobuilder/ui/*": ["packages/ui/src/*"]
+      "@neobuilder/ui/*": ["packages/ui/src/*"],
+      "@neobuilder/editor/*": ["packages/editor/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "build"]

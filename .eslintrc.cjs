@@ -1,5 +1,6 @@
 module.exports = {
   root: true,
+  plugins: ["@typescript-eslint"],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: "module",
@@ -10,6 +11,10 @@ module.exports = {
     },
   },
   extends: ["next/core-web-vitals", "prettier"],
+  rules: {
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-html-link-for-pages": "off",
+  },
   ignorePatterns: ["*.config.js", "*.config.cjs", "dist", "build", "node_modules"],
   overrides: [
     {
