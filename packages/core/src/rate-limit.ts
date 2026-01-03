@@ -13,6 +13,15 @@ export interface RateLimitResult {
   resetMs: number;
 }
 
+function toNumber(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (Array.isArray(value)) {
+    const [, result] = value as [unknown, unknown];
+    return typeof result === "number" ? result : Number(result ?? 0);
+  }
+  return Number((value as number | string | null | undefined) ?? 0);
+}
+
 // Sliding window counter for per-IP and per-workspace limits
 export async function applyRateLimit({ redis, key, windowMs, limit }: RateLimitOptions) {
   const now = Date.now();
@@ -26,8 +35,8 @@ export async function applyRateLimit({ redis, key, windowMs, limit }: RateLimitO
   multi.pexpire(redisKey, windowMs);
 
   const [, , count, expire] = (await multi.exec()) ?? [];
-  const current = typeof count === "number" ? count : Array.isArray(count) ? count[1] : 0;
-  const ttlMs = typeof expire === "number" ? expire : windowMs;
+  const current = toNumber(count);
+  const ttlMs = toNumber(expire) || windowMs;
 
   const allowed = current <= limit;
   const resetMs = Math.max(0, ttlMs);
