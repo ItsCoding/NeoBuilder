@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Editor, Frame, ROOT_NODE, useEditor } from "@craftjs/core";
 import { blockLibrary, craftResolver, starterBlocks, templateLibrary } from "@neobuilder/editor";
 import { toast } from "sonner";
@@ -323,10 +323,13 @@ function EditorSurface({ slug }: { slug: string }) {
   );
 }
 
-export default function PageEditor({ params }: { params: { slug: string } }) {
+export default function PageEditor({ params }: { params: { slug?: string[] } }) {
+  const slugParam = Array.isArray(params.slug) ? params.slug.join("/") : params.slug ?? "";
+  const slug = slugParam ? `/${slugParam}` : "/";
+
   return (
     <Editor resolver={craftResolver} enabled>
-      <EditorSurface slug={params.slug} />
+      <EditorSurface slug={slug} />
     </Editor>
   );
 }

@@ -145,7 +145,10 @@ export default function PagesListPage() {
                     <td className="px-4 py-2 text-slate-600">{row.updated}</td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex justify-end gap-2">
-                        <a className="text-blue-600 hover:underline" href={`/pages/${row.slug}/edit`}>
+                        <a
+                          className="text-blue-600 hover:underline"
+                          href={row.slug === "/" ? "/pages/edit" : `/pages/edit${row.slug}`}
+                        >
                           Edit
                         </a>
                         <a className="text-slate-600 hover:underline" href={`/api/preview?slug=${row.slug}`}>
