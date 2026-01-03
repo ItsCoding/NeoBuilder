@@ -1,7 +1,27 @@
 import type { CSSProperties, ReactNode } from "react";
 import { defaultTheme, themeToCssVars, type ThemeTokens } from "@neobuilder/editor/src/theme";
 
+type MediaSource = { url: string; alt?: string; variants?: { url: string; format: string; width?: number | null; height?: number | null }[] };
+
 type WithTheme = { theme?: ThemeTokens };
+
+function MediaPicture({ media, style }: { media?: MediaSource | null; style?: CSSProperties }) {
+  if (!media || !media.url) return null;
+  const variants = [...(media.variants ?? [])].sort((a, b) => (a.width ?? 0) - (b.width ?? 0));
+  return (
+    <picture style={style}>
+      {variants.map((variant, idx) => (
+        <source
+          key={`${variant.url}-${idx}`}
+          srcSet={variant.url}
+          type={variant.format ? `image/${variant.format}` : undefined}
+          media={variant.width ? `(max-width: ${variant.width}px)` : undefined}
+        />
+      ))}
+      <img src={media.url} alt={media.alt ?? ""} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }} />
+    </picture>
+  );
+}
 
 export function PageCanvas({ children, padding = 32, gap = 20, background = "#f8fafc", maxWidth = 1200, theme = defaultTheme }: { children?: ReactNode; padding?: number; gap?: number; background?: string; maxWidth?: number } & WithTheme) {
   const cssVars: CSSProperties = themeToCssVars(theme);
@@ -103,7 +123,7 @@ export function GridBlock({ children, columns = 3, gap = 16 }: { children?: Reac
   return <div style={{ display: "grid", gap, gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>{children}</div>;
 }
 
-export function CardBlock({ title = "Card title", body = "Card body", mediaUrl, children }: { title?: string; body?: string; mediaUrl?: string; children?: ReactNode }) {
+export function CardBlock({ title = "Card title", body = "Card body", media, children }: { title?: string; body?: string; media?: MediaSource | null; children?: ReactNode }) {
   return (
     <div
       style={{
@@ -117,7 +137,7 @@ export function CardBlock({ title = "Card title", body = "Card body", mediaUrl, 
         gap: 8,
       }}
     >
-      {mediaUrl && <img src={mediaUrl} alt="" style={{ width: "100%", borderRadius: 10, objectFit: "cover" }} />}
+      {media && <MediaPicture media={media} />}
       {title && <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h3>}
       {body && <p style={{ margin: 0, color: "#475569" }}>{body}</p>}
       {children}
@@ -199,13 +219,13 @@ export function MediaEmbedBlock({ url = "https://www.youtube.com/embed/dQw4w9WgX
   );
 }
 
-export function MediaGalleryBlock({ items = [] as { url: string; alt?: string }[] }) {
+export function MediaGalleryBlock({ items = [] as MediaSource[] }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
       {items.map((item, idx) => (
-        <picture key={`${item.url}-${idx}`}>
-          <img src={item.url} alt={item.alt ?? ""} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 10 }} />
-        </picture>
+        <div key={`${item.url}-${idx}`}>
+          <MediaPicture media={item} />
+        </div>
       ))}
     </div>
   );

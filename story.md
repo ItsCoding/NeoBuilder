@@ -434,15 +434,15 @@ Phase 3 — Visual builder (Craft.js) + basic block library
 - [x] Draft Mode implementation: /api/preview endpoint validates token and enables Draft Mode, rendering pipeline fetches Page.draftContent instead of publishedContent, preview banner with "Exit Preview" button.
 
 Phase 5 — Media management (folders, tags, CRUD) + editor integration
-- [ ] DB: MediaFolder { id, workspaceId, parentId, name, path }; MediaAsset { id, workspaceId, folderId, storageKey, mime, size, width, height, duration, alt, createdAt }; MediaTag { id, workspaceId, name } + join table; MediaVariant { assetId, variantType, storageKey, width, height, format }.
-- [ ] Media Library admin page: left sidebar folder tree (nested, drag/drop reorganize, "New folder" button); main area with grid/list view toggle; asset thumbnails with metadata; filters (file type, tags, date, search); bulk actions (move, tag, delete, download); upload drag/drop zone with progress and quota indicator.
-- [ ] Asset detail panel: preview, metadata editor (alt text, tags), usage indicator ("Used in X pages"), variants list, download options, delete button.
-- [ ] Uploads: backend-signed uploads to self-hosted MinIO (no public direct upload); enforce mime allowlist, max file size, per-workspace storage quotas.
-- [ ] Asset optimization pipeline: auto-convert images to WebP/AVIF (with fallbacks); generate responsive variants (thumbs, multiple sizes); video transcoding (ffmpeg) for web-optimized formats; max file size enforcement (prevent large uploads).
-- [ ] Processing: background jobs (BullMQ via Redis) for thumbnails/responsive variants; store variant metadata; lazy loading by default on rendered pages; proper CDN cache headers.
-- [ ] Orphan detection: filter showing unused media, bulk cleanup action in storage management page.
-- [ ] Craft.js integration: media picker widget in editor; store mediaId in documents; render via CDN URL + variants with WebP/AVIF support.
-- [ ] packages/web integration: update media resolver to fetch and use MediaVariant records; generate responsive <picture> elements with srcset for different sizes; automatic WebP/AVIF format selection with fallbacks; update CDN URL generation to point to variant storage keys.
+- [x] DB: MediaFolder { id, workspaceId, parentId, name, path }; MediaAsset { id, workspaceId, folderId, storageKey, mime, size, width, height, duration, alt, createdAt }; MediaTag { id, workspaceId, name } + join table; MediaVariant { assetId, variantType, storageKey, width, height, format }.
+- [x] Media Library admin page: left sidebar folder tree (nested, drag/drop reorganize, "New folder" button); main area with grid/list view toggle; asset thumbnails with metadata; filters (file type, tags, date, search); bulk actions (move, tag, delete, download); upload drag/drop zone with progress and quota indicator.
+- [x] Asset detail panel: preview, metadata editor (alt text, tags), usage indicator ("Used in X pages"), variants list, download options, delete button.
+- [x] Uploads: backend-signed uploads to self-hosted MinIO (no public direct upload); enforce mime allowlist, max file size, per-workspace storage quotas.
+- [x] Asset optimization pipeline: auto-convert images to WebP/AVIF (with fallbacks); generate responsive variants (thumbs, multiple sizes); video transcoding (ffmpeg) for web-optimized formats; max file size enforcement (prevent large uploads).
+- [x] Processing: background jobs (BullMQ via Redis) for thumbnails/responsive variants; store variant metadata; lazy loading by default on rendered pages; proper CDN cache headers.
+- [x] Orphan detection: filter showing unused media, bulk cleanup action in storage management page.
+- [x] Craft.js integration: media picker widget in editor; store mediaId in documents; render via CDN URL + variants with WebP/AVIF support.
+- [x] packages/web integration: update media resolver to fetch and use MediaVariant records; generate responsive <picture> elements with srcset for different sizes; automatic WebP/AVIF format selection with fallbacks; update CDN URL generation to point to variant storage keys.
 
 Phase 6 — Custom databases (user-defined tables/fields) + data-bound blocks
 - [ ] Data model: TableDefinition { id, workspaceId, name, slug }; FieldDefinition { id, tableId, key, label, type, required, configJson, indexed }; Row { id, tableId, dataJson, createdAt, updatedAt }.

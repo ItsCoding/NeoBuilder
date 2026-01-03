@@ -5,6 +5,9 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
+    "mime-types": "^2.1.35",
+    "minio": "^8.0.1",
+    "sharp": "^0.33.4",
     "typeorm": "^0.3.17"
   },
   "scripts": {

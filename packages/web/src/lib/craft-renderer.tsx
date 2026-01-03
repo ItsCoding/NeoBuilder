@@ -111,12 +111,12 @@ function renderNode(
 
   if (resolvedName === "CardBlock" && props.mediaId) {
     const media = resolution.media[props.mediaId];
-    props.mediaUrl = media?.url;
+    props.media = media ?? null;
   }
 
   if (resolvedName === "MediaGalleryBlock") {
     const ids: string[] = Array.isArray(props.mediaIds) ? props.mediaIds : [];
-    props.items = ids.map((id: string) => resolution.media[id] ?? { url: "" });
+    props.items = ids.map((id: string) => resolution.media[id]).filter(Boolean);
   }
 
   if (resolvedName === "AccordionBlock" && Array.isArray(props.items)) {

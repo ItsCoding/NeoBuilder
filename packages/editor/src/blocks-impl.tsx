@@ -198,9 +198,9 @@ GridBlock.craft = {
   rules: { canMoveIn: () => true },
 };
 
-type CardProps = { title?: string; body?: string; media?: string; children?: ReactNode };
+type CardProps = { title?: string; body?: string; mediaId?: string; children?: ReactNode };
 
-export function CardBlock({ title = "Card title", body = "Card body", media, children }: CardProps) {
+export function CardBlock({ title = "Card title", body = "Card body", mediaId, children }: CardProps) {
   const attach = useConnectable();
   return (
     <div
@@ -216,7 +216,11 @@ export function CardBlock({ title = "Card title", body = "Card body", media, chi
         gap: 8,
       }}
     >
-      {media && <div style={{ width: "100%", borderRadius: 10, overflow: "hidden", background: "#f1f5f9", paddingBottom: "56%" }} />}
+      {mediaId && (
+        <div style={{ width: "100%", borderRadius: 10, overflow: "hidden", background: "#e2e8f0", padding: 12, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: 12, color: "#475569" }}>Media: {mediaId}</span>
+        </div>
+      )}
       {title && <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{title}</h3>}
       {body && <p style={{ margin: 0, color: "#475569" }}>{body}</p>}
       {children}
@@ -226,7 +230,7 @@ export function CardBlock({ title = "Card title", body = "Card body", media, chi
 
 CardBlock.craft = {
   displayName: "Card",
-  props: { title: "Card title", body: "Card body", media: "" },
+  props: { title: "Card title", body: "Card body", mediaId: "" },
   rules: { canMoveIn: () => true },
 };
 
@@ -344,11 +348,11 @@ MediaEmbedBlock.craft = {
   props: { url: "", alt: "Media", aspect: 56.25 },
 };
 
-type MediaGalleryProps = { sources?: string[] };
+type MediaGalleryProps = { mediaIds?: string[] };
 
-export function MediaGalleryBlock({ sources = [] }: MediaGalleryProps) {
+export function MediaGalleryBlock({ mediaIds = [] }: MediaGalleryProps) {
   const attach = useConnectable();
-  const placeholders = sources.length ? sources : ["", "", "", ""];
+  const placeholders = mediaIds.length ? mediaIds : ["", "", "", ""];
   return (
     <div ref={attach} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
       {placeholders.map((src, idx) => (
@@ -357,8 +361,13 @@ export function MediaGalleryBlock({ sources = [] }: MediaGalleryProps) {
           style={{
             borderRadius: 10,
             overflow: "hidden",
-            background: src ? `url(${src}) center/cover` : "#e2e8f0",
+            background: src ? "#cbd5e1" : "#e2e8f0",
             paddingBottom: "75%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#475569",
+            fontSize: 12,
           }}
         />
       ))}
@@ -368,7 +377,7 @@ export function MediaGalleryBlock({ sources = [] }: MediaGalleryProps) {
 
 MediaGalleryBlock.craft = {
   displayName: "Media gallery",
-  props: { sources: [] },
+  props: { mediaIds: [] },
 };
 
 type AccordionItem = { title: string; body: string };

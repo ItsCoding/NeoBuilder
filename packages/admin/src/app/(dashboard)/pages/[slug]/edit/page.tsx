@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Editor, Frame, ROOT_NODE, useEditor } from "@craftjs/core";
 import { blockLibrary, craftResolver, starterBlocks, templateLibrary } from "@neobuilder/editor";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ const deviceWidths: Record<string, string> = {
 type InspectorField = {
   key: string;
   label: string;
-  type?: "text" | "number" | "select";
+  type?: "text" | "number" | "select" | "media" | "media-multi";
   options?: string[];
 };
 
@@ -32,6 +32,8 @@ const inspectorSchema: InspectorField[] = [
   { key: "name", label: "Name" },
   { key: "tableId", label: "Table ID" },
   { key: "template", label: "Template" },
+  { key: "mediaId", label: "Media", type: "media" },
+  { key: "mediaIds", label: "Gallery media", type: "media-multi" },
 ];
 
 function InspectorPanel() {

@@ -1,22 +1,8 @@
 import { AppDataSource } from "../data-source";
 import { Page, PageStatus } from "../entities/Page";
 import { PageVersion } from "../entities/PageVersion";
-import { Workspace } from "../entities/Workspace";
 import { IsNull, LessThanOrEqual, Not } from "typeorm";
-
-export async function ensureDataSource() {
-  if (!AppDataSource.isInitialized) {
-    await AppDataSource.initialize();
-  }
-}
-
-async function getWorkspace(workspaceId: string) {
-  await ensureDataSource();
-  const workspaceRepo = AppDataSource.getRepository(Workspace);
-  const workspace = await workspaceRepo.findOne({ where: { id: workspaceId } });
-  if (!workspace) throw new Error("Workspace not found");
-  return workspace;
-}
+import { ensureDataSource, loadWorkspace } from "./base";
 
 async function nextVersionNumber(page: Page) {
   const repo = AppDataSource.getRepository(PageVersion);
@@ -185,7 +171,7 @@ type UpsertDraftOptions = {
 
 export async function upsertPageDraft(options: UpsertDraftOptions) {
   await ensureDataSource();
-  const workspace = await getWorkspace(options.workspaceId);
+  const workspace = await loadWorkspace(options.workspaceId);
   const pageRepo = AppDataSource.getRepository(Page);
 
   let page = await pageRepo.findOne({ where: { slug: options.slug, workspace: { id: workspace.id } } });

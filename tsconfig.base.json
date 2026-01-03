@@ -17,6 +17,10 @@
     "resolveJsonModule": true,
     "types": ["node"],
     "paths": {
+      "@neobuilder/core": ["packages/core/src/index.ts"],
+      "@neobuilder/db": ["packages/db/src/index.ts"],
+      "@neobuilder/ui": ["packages/ui/src/index.ts"],
+      "@neobuilder/editor": ["packages/editor/src/index.ts"],
       "@neobuilder/core/*": ["packages/core/src/*"],
       "@neobuilder/db/*": ["packages/db/src/*"],
       "@neobuilder/ui/*": ["packages/ui/src/*"],

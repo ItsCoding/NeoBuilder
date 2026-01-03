@@ -31,3 +31,12 @@
 - Added a Craft.js rendering pipeline (server-friendly block registry, template engine, external resolvers for media/tables/global sections) plus JSON-LD injection and theme CSS variable support.
 - Implemented Redis-backed HTML caching with structured cache keys and purge helper, alongside performance timing breadcrumbs for render instrumentation.
 - Introduced public API endpoints with rate limiting for calendar availability, form submissions (spam-aware), and site search; added lightweight client-side hydration for interactive blocks.
+
+## Phase 5 completion (media management + editor integration)
+
+- Added MediaFolder, MediaAsset, MediaTag, MediaVariant, and MediaAssetTag entities with datasource wiring, quota helpers, and usage tracking; exposed media services from @neobuilder/db.
+- Implemented MinIO-backed upload flow with mime allowlist, max file size and quota enforcement, tag attachment, and responsive variant generation via sharp (WebP/AVIF + thumbs).
+- Built media APIs for listing, folders CRUD, upload signing/completion, asset update/delete, orphan listing, and storage stats.
+- Replaced admin Media Library with folder tree, filters, grid/list views, drag/drop upload, bulk move/delete/download, tag filters, and asset detail panel (alt/tags, variants, usage).
+- Updated Storage page to surface live usage and orphan cleanup; wired web resolver to fetch media assets/variants and mark usage; renderer outputs responsive picture data.
+- Extended editor blocks and inspector schema to carry mediaId/mediaIds so Craft.js documents store media references aligned with renderer and admin media picker fields.
