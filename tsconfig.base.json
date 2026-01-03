@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "allowJs": false,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "paths": {
+      "@neobuilder/core/*": ["packages/core/src/*"],
+      "@neobuilder/db/*": ["packages/db/src/*"],
+      "@neobuilder/ui/*": ["packages/ui/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "build"]
+}

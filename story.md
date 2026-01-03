@@ -363,15 +363,15 @@ Admin UI/UX patterns
 Implementation plan (raw, phased)
 
 - Phase 1 — Foundation & scaffolding
-- [ ] Create monorepo (packages/admin, packages/web, packages/ui, packages/*) with npm workspaces.
-- [ ] Add shared tooling: ESLint, Prettier, TS configs, CI, commit hooks.
-- [ ] Set up local PostgreSQL and general deployment using Docker Compose (define services for Postgres, Redis, MinIO, and any other required infrastructure; document usage for local dev and production-like environments).
-- [ ] Add typrom in packages/db with baseline models: User, Workspace, WorkspaceMember, Role, WorkspaceQuota (storage limits, API rate limits).
-- [ ] Implement authentication with Auth.js/NextAuth (App Router route handlers) and protect /admin/**.
-- [ ] Add RBAC scaffolding: permission model, can(user, action, resource) helper, admin route guards via middleware.
-- [ ] Implement granular rate limiting: per-IP limits (uploads, form submits, API calls) and per-workspace limits using Redis sliding window counters.
-- [ ] Set up admin UI kit: Tailwind, shadcn/ui + Radix primitives (shadcn installation must be performed manually by a human).
-- [ ] Add Sentry early (error tracking + performance monitoring).
+- [x] Create monorepo (packages/admin, packages/web, packages/ui, packages/*) with npm workspaces.
+- [x] Add shared tooling: ESLint, Prettier, TS configs, CI, commit hooks.
+- [x] Set up local PostgreSQL and general deployment using Docker Compose (define services for Postgres, Redis, MinIO, and any other required infrastructure; document usage for local dev and production-like environments).
+- [x] Add typrom in packages/db with baseline models: User, Workspace, WorkspaceMember, Role, WorkspaceQuota (storage limits, API rate limits).
+- [x] Implement authentication with Auth.js/NextAuth (App Router route handlers) and protect /admin/**.
+- [x] Add RBAC scaffolding: permission model, can(user, action, resource) helper, admin route guards via middleware.
+- [x] Implement granular rate limiting: per-IP limits (uploads, form submits, API calls) and per-workspace limits using Redis sliding window counters.
+- [x] Set up admin UI kit: Tailwind, shadcn/ui + Radix primitives (shadcn installation must be performed manually by a human).
+- [x] Add Sentry early (error tracking + performance monitoring).
 
 Phase 2 — Core CMS entities (pages, publishing workflow, preview)
 - [ ] Define page model: Page { id, workspaceId, slug, title, status, scheduledPublishAt, scheduledUnpublishAt, createdAt, updatedAt }; PageVersion { pageId, version, snapshotJson, createdBy, createdAt }.

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "moduleResolution": "Bundler",
+    "types": ["node", "react/experimental", "react-dom/experimental"],
+    "allowJs": false
+  },
+  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "middleware.ts"],
+  "exclude": ["node_modules"]
+}

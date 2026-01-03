@@ -1,0 +1,28 @@
+{
+  "name": "neobuilder",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@10.4.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint \"packages/**/*.{ts,tsx,js,jsx,mjs,cjs}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css,scss,html}\"",
+    "typecheck": "tsc -b",
+    "prepare": "husky install",
+    "dev:admin": "next dev --turbo --port 3001 --hostname 0.0.0.0 --dir packages/admin",
+    "dev:web": "next dev --turbo --port 3000 --hostname 0.0.0.0 --dir packages/web"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.1.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  }
+}
