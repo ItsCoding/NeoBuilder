@@ -36,18 +36,18 @@ Key capabilities (from discussion + architect + core review)
 Architecture
 - Two surfaces: public site (SSR with selective client-side fetching) and admin app (auth + RBAC + Easyblocks editor page).
 - Rendering strategy: Pure SSR for page content, metadata, and SEO; client-side fetching only for highly dynamic data (booking calendars, real-time availability). No SSG/ISR since this is multi-tenant SaaS.
-- Monorepo (Turborepo + pnpm): apps/admin, apps/web, packages/core, db (Prisma), ui, editor, plugins/*, themes/*, tooling configs.
+- Monorepo (npm workspaces): packages/admin, packages/web, packages/ui, packages/core, db (typrom), editor, plugins/*, themes/*, tooling configs.
 - Data modeling highlights: Workspace, Site, Domain; Page + PageVersion; BuilderDocument (draft/published); MediaAsset/Folder/Tag/Variant; TableDefinition/FieldDefinition/Row; FormDefinition/Submission; CommentThread/Comment.
-- Storage: PostgreSQL + Prisma; JSONB for dynamic row data; Redis for caching/rate limiting; MinIO for media (backend handles signed uploads/ingest).
+- Storage: PostgreSQL + typrom; JSONB for dynamic row data; Redis for caching/rate limiting; MinIO for media (backend handles signed uploads/ingest).
 
 Public page rendering flow (Easyblocks → React)
 
 Overview
-The public site (apps/web) renders pages via pure SSR (Server-Side Rendering). Each request fetches the Easyblocks document JSON from the database, resolves external references, and transforms it into React components on the server. The fully-rendered HTML is sent to the client with embedded metadata for SEO. Highly dynamic components (booking calendars, real-time availability) hydrate on the client and fetch their data via API endpoints.
+The public site (packages/web) renders pages via pure SSR (Server-Side Rendering). Each request fetches the Easyblocks document JSON from the database, resolves external references, and transforms it into React components on the server. The fully-rendered HTML is sent to the client with embedded metadata for SEO. Highly dynamic components (booking calendars, real-time availability) hydrate on the client and fetch their data via API endpoints.
 
 Content authoring → storage → rendering lifecycle
 1. **Authoring (Admin App)**
-   - User edits page in Easyblocks visual editor (apps/admin)
+   - User edits page in Easyblocks visual editor (packages/admin)
    - Editor state is Easyblocks document JSON: hierarchical tree of block definitions with props
    - Each block has: type (e.g., "Paragraph", "Card", "RepeatableGrid"), props (text, styles, external references like mediaId or tableId)
    - Document saved to database as draft (BuilderDocument table, or Page.draftContent JSON column)
@@ -61,7 +61,7 @@ Content authoring → storage → rendering lifecycle
    - This keeps documents lightweight and allows content updates without re-saving pages
 
 3. **Fetching (Public Site Request)**
-   - User requests `/about-us` on apps/web
+   - User requests `/about-us` on packages/web
    - Next.js route handler: look up Page by slug, check status (only published), check locale (if i18n)
    - Load Page.publishedContent JSON + metadata (title, meta, scheduledUnpublishAt)
    - If scheduled to unpublish in past, treat as 404
@@ -362,15 +362,15 @@ Admin UI/UX patterns
 
 Implementation plan (raw, phased)
 
-Phase 1 — Foundation & scaffolding
-- [ ] Create Turborepo monorepo (apps/admin, apps/web, packages/*) with pnpm workspaces.
+- Phase 1 — Foundation & scaffolding
+- [ ] Create monorepo (packages/admin, packages/web, packages/ui, packages/*) with npm workspaces.
 - [ ] Add shared tooling: ESLint, Prettier, TS configs, CI, commit hooks.
 - [ ] Set up local PostgreSQL and general deployment using Docker Compose (define services for Postgres, Redis, MinIO, and any other required infrastructure; document usage for local dev and production-like environments).
-- [ ] Add Prisma in packages/db with baseline models: User, Workspace, WorkspaceMember, Role, WorkspaceQuota (storage limits, API rate limits).
+- [ ] Add typrom in packages/db with baseline models: User, Workspace, WorkspaceMember, Role, WorkspaceQuota (storage limits, API rate limits).
 - [ ] Implement authentication with Auth.js/NextAuth (App Router route handlers) and protect /admin/**.
 - [ ] Add RBAC scaffolding: permission model, can(user, action, resource) helper, admin route guards via middleware.
 - [ ] Implement granular rate limiting: per-IP limits (uploads, form submits, API calls) and per-workspace limits using Redis sliding window counters.
-- [ ] Set up admin UI kit: Tailwind, shadcn/ui + Radix primitives.
+- [ ] Set up admin UI kit: Tailwind, shadcn/ui + Radix primitives (shadcn installation must be performed manually by a human).
 - [ ] Add Sentry early (error tracking + performance monitoring).
 
 Phase 2 — Core CMS entities (pages, publishing workflow, preview)
@@ -389,7 +389,7 @@ Phase 2 — Core CMS entities (pages, publishing workflow, preview)
 - [ ] Storage quota management: per-workspace storage limits, usage dashboard (X GB used / Y GB limit), block uploads when over quota, auto-delete media variants when original is deleted; storage page showing quota usage and orphan cleanup tools.
 
 Phase 3 — Visual builder (Easyblocks) + basic block library
-- [ ] Integrate Easyblocks: editor page in apps/admin mounting EasyblocksEditor; packages/editor for config + block registry.
+- [ ] Integrate Easyblocks: editor page in packages/admin mounting EasyblocksEditor; packages/editor for config + block registry.
 - [ ] Page editor UI: top toolbar (title, status, preview, save, publish, settings), left sidebar (blocks palette, layers tree, device switcher), center canvas, right sidebar (block properties, page settings), bottom bar (version history, scores).
 - [ ] Document persistence: DB tables for drafts/published; optional Easyblocks cloud backend for prototyping.
 - [ ] Core blocks: paragraph, headings, grid, repeatable grid/list (table-bound), cards, callouts, carousel, table, media embed, media gallery, accordion, modal, links, buttons, chips, divider.
@@ -399,8 +399,8 @@ Phase 3 — Visual builder (Easyblocks) + basic block library
 - [ ] Theming primitives: define Easyblocks tokens for color/font/space; map to CSS variables/Tailwind.
 - [ ] Admin UI polish: breadcrumbs, toast notifications, confirmation modals for destructive actions, loading states (skeleton screens, spinners, progress bars), empty states with helpful CTAs, inline editing patterns, contextual action menus.
 
-Phase 4 — Public site rendering (apps/web)
-- [ ] Set up apps/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).
+- Phase 4 — Public site rendering (packages/web)
+- [ ] Set up packages/web Next.js app: App Router, TypeScript, SSR configuration, environment-based routing (workspace domain mapping).
 - [ ] Page request handler: receive incoming request, extract workspace from domain/subdomain, look up Page by slug + workspaceId, check publish status and scheduledUnpublishAt.
 - [ ] External data resolver: implement resolution system for external references in Easyblocks documents:
   - [ ] MediaAsset resolver: fetch media by IDs, build resolution map with CDN URLs, alt text, variants (WebP/AVIF).
@@ -438,7 +438,7 @@ Phase 5 — Media management (folders, tags, CRUD) + editor integration
 - [ ] Processing: background jobs (BullMQ via Redis) for thumbnails/responsive variants; store variant metadata; lazy loading by default on rendered pages; proper CDN cache headers.
 - [ ] Orphan detection: filter showing unused media, bulk cleanup action in storage management page.
 - [ ] Easyblocks integration: media picker widget in editor; store mediaId in documents; render via CDN URL + variants with WebP/AVIF support.
-- [ ] apps/web integration: update media resolver to fetch and use MediaVariant records; generate responsive <picture> elements with srcset for different sizes; automatic WebP/AVIF format selection with fallbacks; update CDN URL generation to point to variant storage keys.
+- [ ] packages/web integration: update media resolver to fetch and use MediaVariant records; generate responsive <picture> elements with srcset for different sizes; automatic WebP/AVIF format selection with fallbacks; update CDN URL generation to point to variant storage keys.
 
 Phase 6 — Custom databases (user-defined tables/fields) + data-bound blocks
 - [ ] Data model: TableDefinition { id, workspaceId, name, slug }; FieldDefinition { id, tableId, key, label, type, required, configJson, indexed }; Row { id, tableId, dataJson, createdAt, updatedAt }.
@@ -449,24 +449,24 @@ Phase 6 — Custom databases (user-defined tables/fields) + data-bound blocks
 - [ ] Bind to visual blocks: repeatable selectors (pick table, query filter/sort/limit, template strings {{name}}, {{price}}, {{media.main}}); placeholder resolver; media link rendering.
 - [ ] Performance: auto-create GIN indexes on JSONB columns for indexed fields; consider denormalizing hot data (e.g., product price as real column, not JSONB) for frequently queried fields; add optional denormalized search view for fast search.
 - [ ] Site search implementation: PostgreSQL full-text search for published pages, custom database rows, and media; search results page block; search analytics (track what users search for but don't find = content gap); admin search analytics dashboard (under Analytics page, separate tab for search insights).
-- [ ] apps/web integration: update table data resolver to handle complex queries (filters, sorting, pagination); implement template string replacement engine for {{placeholder}} syntax; support nested field access ({{media.main}}, {{user.name}}); handle media link field resolution in row data; add RepeatableGrid/RepeatableList rendering components; implement search results page rendering with highlighted matches.
+- [ ] packages/web integration: update table data resolver to handle complex queries (filters, sorting, pagination); implement template string replacement engine for {{placeholder}} syntax; support nested field access ({{media.main}}, {{user.name}}); handle media link field resolution in row data; add RepeatableGrid/RepeatableList rendering components; implement search results page rendering with highlighted matches.
 
 Phase 7 — Plugins, themes, high-level blocks, and product hardening
 - [ ] Plugin system v1 (build-time): plugin manifest + register() API; contributions for blocks/templates, field types, admin pages/settings, server hooks (publish, form submit); load from packages/plugins/*; compatibility rules; Integrations admin page (list plugins, enable/disable, configure).
-- [ ] apps/web plugin integration: load plugin-contributed blocks in rendering pipeline; register plugin blocks in Easyblocks renderer; execute plugin server hooks (pre-render, post-render, page-viewed); support plugin-defined external data resolvers.
+- [ ] packages/web plugin integration: load plugin-contributed blocks in rendering pipeline; register plugin blocks in Easyblocks renderer; execute plugin server hooks (pre-render, post-render, page-viewed); support plugin-defined external data resolvers.
 - [ ] Theme system: packages exporting Easyblocks token sets, CSS variables/Tailwind presets, block style variants; per-site theme selection; Themes admin page (installed themes cards with preview, activate, configure token values).
-- [ ] apps/web theme integration: fetch active theme for workspace on each request; inject theme CSS variables in <head>; apply theme-specific Tailwind classes; support theme switching without cache invalidation (dynamic CSS injection).
+- [ ] packages/web theme integration: fetch active theme for workspace on each request; inject theme CSS variables in <head>; apply theme-specific Tailwind classes; support theme switching without cache invalidation (dynamic CSS injection).
 - [ ] High-level blocks + starter designs: split variants, product list/carousel (table-bound), pre-themed gallery/slider, design templates gallery.
 - [ ] Multi-language/localization (i18n): PageTranslation table; language switcher block; translation status indicators in admin; fallback to default language; routing via /en/about, /de/about; media alt text per locale; locale column on relevant tables; language management in General settings.
-- [ ] apps/web i18n integration: expand locale routing from Phase 4; render language switcher block with proper hrefs; resolve all locale-specific strings (page content, media alt text, form labels); implement locale fallback chain (de-CH → de → en); set lang attribute on <html> tag; include hreflang links in <head> for SEO.
+- [ ] packages/web i18n integration: expand locale routing from Phase 4; render language switcher block with proper hrefs; resolve all locale-specific strings (page content, media alt text, form labels); implement locale fallback chain (de-CH → de → en); set lang attribute on <html> tag; include hreflang links in <head> for SEO.
 - [ ] Visual form builder: drag/drop form editor block; field types (text, email, phone, select, radio, checkbox, file upload, date picker); conditional logic (show field X if Y is checked); notifications to workspace admin + auto-reply to user; submission storage + CSV export; spam defense (Turnstile server-side validation + honeypot fields); Forms admin page (list forms, builder UI, submissions inbox with table view, filters, export).
-- [ ] apps/web form integration: render FormBuilder block as interactive HTML form; implement client-side validation; handle conditional field logic (show/hide based on other fields); submit to /api/public/forms/submit endpoint; show success/error messages; integrate Turnstile widget; render honeypot fields (hidden from users).
+- [ ] packages/web form integration: render FormBuilder block as interactive HTML form; implement client-side validation; handle conditional field logic (show/hide based on other fields); submit to /api/public/forms/submit endpoint; show success/error messages; integrate Turnstile widget; render honeypot fields (hidden from users).
 - [ ] Booking/reservation system: availability calendar UI; time slot selection; capacity limits per slot; confirmation flow; admin calendar view with status (pending, confirmed, canceled); basic notification system; dedicated Bookings admin section or part of Forms.
-- [ ] apps/web booking integration: render BookingCalendar block (already covered in Phase 4 dynamic components); implement /api/public/bookings/* endpoints (availability, create booking, cancel booking); handle capacity validation; send confirmation emails via background job.
+- [ ] packages/web booking integration: render BookingCalendar block (already covered in Phase 4 dynamic components); implement /api/public/bookings/* endpoints (availability, create booking, cancel booking); handle capacity validation; send confirmation emails via background job.
 - [ ] Comments (as plugin): moderation queue (approve/spam/trash); threading optional; spam defense (Turnstile server-side validation, optional Akismet); notification system for workspace admins; Comments admin page with tabs (Pending/Approved/Spam/Trash), bulk moderation, settings.
-- [ ] apps/web comments integration: render Comments block showing approved comments for page; implement comment submission form with Turnstile; submit to /api/public/comments/submit; show pending moderation message; support threading (replies) if enabled; real-time comment updates optional (WebSocket or polling).
+- [ ] packages/web comments integration: render Comments block showing approved comments for page; implement comment submission form with Turnstile; submit to /api/public/comments/submit; show pending moderation message; support threading (replies) if enabled; real-time comment updates optional (WebSocket or polling).
 - [ ] GDPR-compliant Analytics: implement privacy-first tracking (no cookies, no personal data, anonymized pageviews); Analytics admin page with time range selector, key metrics (unique visitors, pageviews, bounce rate, avg session), visitors chart, top pages, referrer sources, geographic data (country-level only), device/browser stats, custom events, real-time visitor count, export CSV, "GDPR-compliant" badge; search analytics tab (what users search for, popular queries, no-result searches).
-- [ ] apps/web analytics integration: inject lightweight tracking script in <head> or <body>; track pageview on SSR (send to /api/internal/analytics/track); anonymize IP addresses; respect DNT header; track custom events (form submit, button click) client-side; no third-party requests; all data stored in own DB.
+- [ ] packages/web analytics integration: inject lightweight tracking script in <head> or <body>; track pageview on SSR (send to /api/internal/analytics/track); anonymize IP addresses; respect DNT header; track custom events (form submit, button click) client-side; no third-party requests; all data stored in own DB.
 - [ ] Accessibility checker: integrate axe-core; real-time checks in editor (missing alt text on images, low contrast text/background, missing heading hierarchy, empty links); accessibility score display in page editor bottom bar; warnings before publish.
 - [ ] Performance monitoring: Lighthouse score tracking per page; run on publish and show LCP/FID/CLS metrics in page editor bottom bar; warn if score drops below threshold; integrate with Sentry performance monitoring; optional Performance tab in Analytics page.
 - [ ] Staging environments: per-workspace staging site (separate subdomain); "Clone production → staging" action; test changes in staging; "Promote staging → production" one-click merge with diff preview; staging mode indicator in admin (environment toggle in top bar, persistent banner when in staging mode); staging controls in Advanced settings page.
